@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Tornadoes Handball</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <nav class="navbar">
+            <div class="container">
+                <a href="/" class="navbar-brand"><span class="icon">🏐</span> Tornadoes</a>
+                <ul class="navbar-links">
+                    <li><a href="/dashboard.html" class="active">Dashboard</a></li>
+                    <li><a href="/matches.html">Matches</a></li>
+                    <li><a href="/attendance.html">Attendance</a></li>
+                    <li><a href="/antidoping.html">Anti-Doping</a></li>
+                    <li><a href="/admin.html" id="adminLink" class="hidden">Admin</a></li>
+                </ul>
+                <div class="navbar-auth">
+                    <span id="greeting"
+                        style="color:var(--text-secondary); font-size:0.85rem; padding:0.45rem 0;"></span>
+                    <button onclick="logout()" class="btn btn-outline btn-sm">Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="page-content">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Dashboard</h2>
+                    <span class="badge badge-role" id="roleBadge"></span>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-number" id="statMatches">—</div>
+                        <div class="stat-label">Total Matches</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statWins">—</div>
+                        <div class="stat-label">Wins</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statAnnouncements">—</div>
+                        <div class="stat-label">Announcements</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statSeasons">—</div>
+                        <div class="stat-label">Seasons</div>
+                    </div>
+                </div>
+
+                <!-- Recent Announcements -->
+                <div class="section-header">
+                    <h2>📢 Announcements</h2>
+                    <button class="btn btn-primary btn-sm" onclick="showAnnouncementForm()">+ New</button>
+                </div>
+                <div id="announcements" style="margin-bottom:2rem;"></div>
+
+                <!-- Announcement Form Modal -->
+                <div class="modal-overlay" id="announcementModal">
+                    <div class="modal">
+                        <h3>Submit Announcement</h3>
+                        <form onsubmit="submitAnnouncement(event)">
+                            <div class="form-group">
+                                <label class="form-label">Title</label>
+                                <input class="form-input" id="annTitle" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Content</label>
+                                <textarea class="form-textarea" id="annContent" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">External Link (optional)</label>
+                                <input class="form-input" id="annLink" placeholder="https://...">
+                            </div>
+                            <div class="flex gap-1">
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                                <button type="button" class="btn btn-outline"
+                                    onclick="closeModal('announcementModal')">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Upcoming Matches -->
+                <div class="section-header">
+                    <h2>⚽ Upcoming Matches</h2>
+                    <a href="/matches.html" class="btn btn-outline btn-sm">View All</a>
+                </div>
+                <div id="upcomingMatches"></div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <div class="container">© 2026 Tornadoes Handball</div>
+        </footer>
+    </div>
+
+    <div class="toast-container" id="toasts"></div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const userName = localStorage.getItem('userName');
+        const userRole = localStorage.getItem('userRole');
+
+        if (!token) { window.location.href = '/login.html'; }
+
+        document.getElementById('greeting').textContent = `Hi, ${userName}`;
+        document.getElementById('roleBadge').textContent = userRole;
+        if (userRole === 'admin' || userRole === 'coach') {
+            document.getElementById('adminLink').classList.remove('hidden');
+        }
+
+        function authHeaders() {
+            return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+        }
+
+        function showToast(msg, type = 'success') {
+            const div = document.createElement('div');
+            div.className = `toast toast-${type}`;
+            div.textContent = msg;
+            document.getElementById('toasts').appendChild(div);
+            setTimeout(() => div.remove(), 3500);
+        }
+
+        function showAnnouncementForm() { document.getElementById('announcementModal').classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        async function submitAnnouncement(e) {
+            e.preventDefault();
+            try {
+                const res = await fetch('/api/announcements', {
+                    method: 'POST', headers: authHeaders(),
+                    body: JSON.stringify({
+                        title: document.getElementById('annTitle').value,
+                        content: document.getElementById('annContent').value,
+                        external_link: document.getElementById('annLink').value || null
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Announcement submitted for approval');
+                    closeModal('announcementModal');
+                    loadAnnouncements();
+                } else { showToast(data.message, 'error'); }
+            } catch { showToast('Network error', 'error'); }
+        }
+
+        async function loadAnnouncements() {
+            try {
+                const res = await fetch('/api/announcements');
+                const data = await res.json();
+                const container = document.getElementById('announcements');
+                if (!data.length) { container.innerHTML = '<p class="text-muted">No announcements yet.</p>'; return; }
+                container.innerHTML = data.slice(0, 5).map(a => `
+            <div class="card" style="margin-bottom:0.8rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                    <strong>${esc(a.title)}</strong>
+                    <span class="text-muted" style="font-size:0.75rem;">${a.created_at}</span>
+                </div>
+                <p class="card-text">${esc(a.content)}</p>
+                ${a.external_link ? `<a href="${esc(a.external_link)}" target="_blank" rel="noopener" style="font-size:0.85rem;">🔗 Link</a>` : ''}
+            </div>
+        `).join('');
+            } catch { document.getElementById('announcements').innerHTML = '<p class="text-muted">Failed to load announcements.</p>'; }
+        }
+
+        async function loadMatches() {
+            try {
+                const res = await fetch('/api/matches');
+                const data = await res.json();
+                document.getElementById('statMatches').textContent = data.length;
+                document.getElementById('statWins').textContent = data.filter(m => m.result === 'win').length;
+
+                const today = new Date().toISOString().split('T')[0];
+                const upcoming = data.filter(m => m.date >= today).slice(0, 3);
+                const container = document.getElementById('upcomingMatches');
+                if (!upcoming.length) { container.innerHTML = '<p class="text-muted">No upcoming matches.</p>'; return; }
+                container.innerHTML = upcoming.map(m => `
+            <div class="card" style="margin-bottom:0.8rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                <div>
+                    <strong>vs ${esc(m.opponent)}</strong>
+                    <span class="text-muted" style="font-size:0.82rem;"> · ${m.date} · ${esc(m.venue)}</span>
+                </div>
+                ${m.result ? `<span class="badge badge-${m.result}">${m.result.toUpperCase()}</span>` : '<span class="badge badge-pending">UPCOMING</span>'}
+            </div>
+        `).join('');
+            } catch { }
+        }
+
+        async function loadStats() {
+            try {
+                const [annRes, seasonRes] = await Promise.all([
+                    fetch('/api/announcements'), fetch('/api/seasons')
+                ]);
+                const ann = await annRes.json();
+                const seasons = await seasonRes.json();
+                document.getElementById('statAnnouncements').textContent = ann.length;
+                document.getElementById('statSeasons').textContent = seasons.length;
+            } catch { }
+        }
+
+        function esc(str) {
+            if (!str) return '';
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        loadAnnouncements();
+        loadMatches();
+        loadStats();
+    </script>
+</body>
+
+</html>

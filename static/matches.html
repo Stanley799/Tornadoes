@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matches — Tornadoes Handball</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <nav class="navbar">
+            <div class="container">
+                <a href="/" class="navbar-brand"><span class="icon">🏐</span> Tornadoes</a>
+                <ul class="navbar-links">
+                    <li><a href="/dashboard.html">Dashboard</a></li>
+                    <li><a href="/matches.html" class="active">Matches</a></li>
+                    <li><a href="/attendance.html">Attendance</a></li>
+                    <li><a href="/antidoping.html">Anti-Doping</a></li>
+                    <li><a href="/admin.html" id="adminLink" class="hidden">Admin</a></li>
+                </ul>
+                <div class="navbar-auth">
+                    <button onclick="logout()" class="btn btn-outline btn-sm">Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="page-content">
+            <div class="container">
+                <div class="section-header">
+                    <h2>⚽ All Matches</h2>
+                    <button class="btn btn-primary btn-sm hidden" id="addMatchBtn" onclick="showMatchForm()">+ Add
+                        Match</button>
+                </div>
+
+                <!-- Filter tabs -->
+                <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+                    <button class="btn btn-outline btn-sm" onclick="filterMatches('all')" id="filterAll">All</button>
+                    <button class="btn btn-outline btn-sm" onclick="filterMatches('upcoming')">Upcoming</button>
+                    <button class="btn btn-outline btn-sm" onclick="filterMatches('played')">Played</button>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Opponent</th>
+                                <th>Venue</th>
+                                <th>Result</th>
+                                <th>Score</th>
+                                <th>Link</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matchesBody"></tbody>
+                    </table>
+                </div>
+                <p id="noMatches" class="text-muted text-center mt-2 hidden">No matches found.</p>
+
+                <!-- Add Match Modal -->
+                <div class="modal-overlay" id="matchModal">
+                    <div class="modal">
+                        <h3>Add Match</h3>
+                        <form onsubmit="createMatch(event)">
+                            <div class="form-group">
+                                <label class="form-label">Date</label>
+                                <input class="form-input" type="date" id="mDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Opponent</label>
+                                <input class="form-input" id="mOpponent" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Venue</label>
+                                <input class="form-input" id="mVenue" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Season</label>
+                                <select class="form-select" id="mSeason" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tournament (optional)</label>
+                                <select class="form-select" id="mTournament">
+                                    <option value="">None</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Match Link (optional)</label>
+                                <input class="form-input" id="mLink" placeholder="https://...">
+                            </div>
+                            <div class="flex gap-1">
+                                <button type="submit" class="btn btn-primary">Create</button>
+                                <button type="button" class="btn btn-outline"
+                                    onclick="closeModal('matchModal')">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Update Result Modal -->
+                <div class="modal-overlay" id="resultModal">
+                    <div class="modal">
+                        <h3>Update Result</h3>
+                        <form onsubmit="updateResult(event)">
+                            <input type="hidden" id="rMatchId">
+                            <div class="form-group">
+                                <label class="form-label">Result</label>
+                                <select class="form-select" id="rResult">
+                                    <option value="">—</option>
+                                    <option value="win">Win</option>
+                                    <option value="loss">Loss</option>
+                                    <option value="draw">Draw</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Score</label>
+                                <input class="form-input" id="rScore" placeholder="e.g. 28-24">
+                            </div>
+                            <div class="flex gap-1">
+                                <button type="submit" class="btn btn-primary">Update</button>
+                                <button type="button" class="btn btn-outline"
+                                    onclick="closeModal('resultModal')">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <div class="container">© 2026 Tornadoes Handball</div>
+        </footer>
+    </div>
+    <div class="toast-container" id="toasts"></div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('userRole');
+        if (!token) window.location.href = '/login.html';
+        if (role === 'admin' || role === 'coach') {
+            document.getElementById('addMatchBtn').classList.remove('hidden');
+            document.getElementById('adminLink').classList.remove('hidden');
+        }
+
+        let allMatches = [];
+
+        function authHeaders() { return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }; }
+        function showToast(m, t = 'success') { const d = document.createElement('div'); d.className = `toast toast-${t}`; d.textContent = m; document.getElementById('toasts').appendChild(d); setTimeout(() => d.remove(), 3500); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+        function logout() { localStorage.clear(); window.location.href = '/'; }
+
+        function showMatchForm() {
+            loadSeasonsForForm();
+            document.getElementById('matchModal').classList.add('active');
+        }
+
+        function showResultForm(id) {
+            document.getElementById('rMatchId').value = id;
+            document.getElementById('resultModal').classList.add('active');
+        }
+
+        async function loadMatches() {
+            try {
+                const res = await fetch('/api/matches');
+                allMatches = await res.json();
+                renderMatches(allMatches);
+            } catch { }
+        }
+
+        function filterMatches(type) {
+            const today = new Date().toISOString().split('T')[0];
+            let filtered = allMatches;
+            if (type === 'upcoming') filtered = allMatches.filter(m => m.date >= today && !m.result);
+            if (type === 'played') filtered = allMatches.filter(m => m.result);
+            renderMatches(filtered);
+        }
+
+        function renderMatches(list) {
+            const body = document.getElementById('matchesBody');
+            const noMsg = document.getElementById('noMatches');
+            if (!list.length) { body.innerHTML = ''; noMsg.classList.remove('hidden'); return; }
+            noMsg.classList.add('hidden');
+            const isCoach = role === 'admin' || role === 'coach';
+            body.innerHTML = list.map(m => `
+        <tr>
+            <td>${m.date}</td>
+            <td><strong>${esc(m.opponent)}</strong></td>
+            <td>${esc(m.venue)}</td>
+            <td>
+                ${m.result ? `<span class="badge badge-${m.result}">${m.result.toUpperCase()}</span>` : (isCoach ? `<button class="btn btn-outline btn-sm" onclick="showResultForm(${m.id})">Set Result</button>` : '<span class="text-muted">—</span>')}
+            </td>
+            <td>${m.score || '—'}</td>
+            <td>${m.match_link ? `<a href="${esc(m.match_link)}" target="_blank">🔗</a>` : '—'}</td>
+        </tr>
+    `).join('');
+        }
+
+        async function createMatch(e) {
+            e.preventDefault();
+            try {
+                const res = await fetch('/api/matches', {
+                    method: 'POST', headers: authHeaders(),
+                    body: JSON.stringify({
+                        date: document.getElementById('mDate').value,
+                        opponent: document.getElementById('mOpponent').value,
+                        venue: document.getElementById('mVenue').value,
+                        season_id: parseInt(document.getElementById('mSeason').value),
+                        tournament_id: document.getElementById('mTournament').value ? parseInt(document.getElementById('mTournament').value) : null,
+                        match_link: document.getElementById('mLink').value || null,
+                        result: null, score: null
+                    })
+                });
+                const data = await res.json();
+                if (data.success) { showToast('Match created'); closeModal('matchModal'); loadMatches(); }
+                else showToast(data.message, 'error');
+            } catch { showToast('Network error', 'error'); }
+        }
+
+        async function updateResult(e) {
+            e.preventDefault();
+            try {
+                const res = await fetch('/api/matches/update', {
+                    method: 'POST', headers: authHeaders(),
+                    body: JSON.stringify({
+                        id: parseInt(document.getElementById('rMatchId').value),
+                        result: document.getElementById('rResult').value || null,
+                        score: document.getElementById('rScore').value || null,
+                        match_link: null
+                    })
+                });
+                const data = await res.json();
+                if (data.success) { showToast('Result updated'); closeModal('resultModal'); loadMatches(); }
+                else showToast(data.message, 'error');
+            } catch { showToast('Network error', 'error'); }
+        }
+
+        async function loadSeasonsForForm() {
+            try {
+                const [sRes, tRes] = await Promise.all([fetch('/api/seasons'), fetch('/api/tournaments')]);
+                const seasons = await sRes.json();
+                const tournaments = await tRes.json();
+                document.getElementById('mSeason').innerHTML = seasons.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('') || '<option value="">No seasons — create one in Admin</option>';
+                document.getElementById('mTournament').innerHTML = '<option value="">None</option>' + tournaments.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+            } catch { }
+        }
+
+        loadMatches();
+    </script>
+</body>
+
+</html>

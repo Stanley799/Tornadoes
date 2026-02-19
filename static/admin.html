@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — Tornadoes Handball</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <nav class="navbar">
+            <div class="container">
+                <a href="/" class="navbar-brand"><span class="icon">🏐</span> Tornadoes</a>
+                <ul class="navbar-links">
+                    <li><a href="/dashboard.html">Dashboard</a></li>
+                    <li><a href="/matches.html">Matches</a></li>
+                    <li><a href="/attendance.html">Attendance</a></li>
+                    <li><a href="/antidoping.html">Anti-Doping</a></li>
+                    <li><a href="/admin.html" class="active">Admin</a></li>
+                </ul>
+                <div class="navbar-auth">
+                    <button onclick="logout()" class="btn btn-outline btn-sm">Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="page-content">
+            <div class="container">
+                <h2 style="margin-bottom:2rem;">⚙️ Admin Panel</h2>
+
+                <!-- Pending Announcements -->
+                <div class="card" style="margin-bottom:1.5rem;">
+                    <div class="section-header" style="margin-bottom:1rem;">
+                        <h3>📢 Pending Announcements</h3>
+                    </div>
+                    <div id="pendingAnn">
+                        <p class="text-muted">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- User Management -->
+                <div class="card" style="margin-bottom:1.5rem;">
+                    <div class="section-header" style="margin-bottom:1rem;">
+                        <h3>👥 Team Members</h3>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Season Management -->
+                <div class="card" style="margin-bottom:1.5rem;">
+                    <div class="section-header" style="margin-bottom:1rem;">
+                        <h3>🏆 Seasons</h3>
+                        <button class="btn btn-primary btn-sm"
+                            onclick="document.getElementById('seasonForm').classList.toggle('hidden')">+ New
+                            Season</button>
+                    </div>
+                    <form id="seasonForm" class="hidden" onsubmit="createSeason(event)" style="margin-bottom:1rem;">
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:flex-end;">
+                            <div class="form-group" style="margin-bottom:0; flex:1; min-width:150px;">
+                                <label class="form-label">Name</label>
+                                <input class="form-input" id="sName" required placeholder="e.g. 2026 Season">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label">Start</label>
+                                <input class="form-input" type="date" id="sStart" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label">End</label>
+                                <input class="form-input" type="date" id="sEnd" required>
+                            </div>
+                            <button class="btn btn-primary btn-sm" type="submit">Create</button>
+                        </div>
+                    </form>
+                    <div id="seasonsList"></div>
+                </div>
+
+                <!-- Tournament Management -->
+                <div class="card">
+                    <div class="section-header" style="margin-bottom:1rem;">
+                        <h3>🏅 Tournaments</h3>
+                        <button class="btn btn-primary btn-sm"
+                            onclick="document.getElementById('tournamentForm').classList.toggle('hidden')">+ New
+                            Tournament</button>
+                    </div>
+                    <form id="tournamentForm" class="hidden" onsubmit="createTournament(event)"
+                        style="margin-bottom:1rem;">
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:flex-end;">
+                            <div class="form-group" style="margin-bottom:0; flex:1; min-width:150px;">
+                                <label class="form-label">Name</label>
+                                <input class="form-input" id="tName" required placeholder="e.g. County League">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label">Season</label>
+                                <select class="form-select" id="tSeason" required></select>
+                            </div>
+                            <button class="btn btn-primary btn-sm" type="submit">Create</button>
+                        </div>
+                    </form>
+                    <div id="tournamentsList"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <div class="container">© 2026 Tornadoes Handball</div>
+        </footer>
+    </div>
+    <div class="toast-container" id="toasts"></div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('userRole');
+        if (!token) window.location.href = '/login.html';
+        if (role !== 'admin' && role !== 'coach') { window.location.href = '/dashboard.html'; }
+
+        function authHeaders() { return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }; }
+        function showToast(m, t = 'success') { const d = document.createElement('div'); d.className = `toast toast-${t}`; d.textContent = m; document.getElementById('toasts').appendChild(d); setTimeout(() => d.remove(), 3500); }
+        function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+        function logout() { localStorage.clear(); window.location.href = '/'; }
+
+        // ─── Pending Announcements ──────────────────────────────────
+        async function loadPending() {
+            try {
+                const res = await fetch('/api/announcements/pending', { headers: authHeaders() });
+                const data = await res.json();
+                const div = document.getElementById('pendingAnn');
+                if (!data.length) { div.innerHTML = '<p class="text-muted">No pending announcements. 🎉</p>'; return; }
+                div.innerHTML = data.map(a => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.7rem 0; border-bottom:1px solid var(--border); flex-wrap:wrap; gap:0.5rem;">
+                <div>
+                    <strong>${esc(a.title)}</strong>
+                    <span class="text-muted" style="font-size:0.8rem;"> — ${esc(a.content).substring(0, 80)}...</span>
+                </div>
+                <button class="btn btn-success btn-sm" onclick="approveAnn(${a.id})">✓ Approve</button>
+            </div>
+        `).join('');
+            } catch { }
+        }
+
+        async function approveAnn(id) {
+            try {
+                const res = await fetch('/api/announcements/approve', {
+                    method: 'POST', headers: authHeaders(),
+                    body: JSON.stringify({ id })
+                });
+                const data = await res.json();
+                if (data.success) { showToast('Approved'); loadPending(); }
+                else showToast(data.message, 'error');
+            } catch { showToast('Network error', 'error'); }
+        }
+
+        // ─── Users ──────────────────────────────────────────────────
+        async function loadUsers() {
+            try {
+                const res = await fetch('/api/users', { headers: authHeaders() });
+                const users = await res.json();
+                document.getElementById('usersBody').innerHTML = users.map(u => `
+            <tr>
+                <td><strong>${esc(u.name)}</strong></td>
+                <td>${esc(u.email)}</td>
+                <td><span class="badge badge-role">${u.role}</span></td>
+                <td>
+                    ${role === 'admin' ? `
+                        <select class="form-select" style="width:auto; display:inline-block;" onchange="changeRole(${u.id}, this.value)">
+                            <option value="player" ${u.role === 'player' ? 'selected' : ''}>Player</option>
+                            <option value="coach" ${u.role === 'coach' ? 'selected' : ''}>Coach</option>
+                            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                        </select>
+                    ` : '—'}
+                </td>
+            </tr>
+        `).join('');
+            } catch { }
+        }
+
+        async function changeRole(userId, roleName) {
+            try {
+                const res = await fetch('/api/users/role', {
+                    method: 'POST', headers: authHeaders(),
+                    body: JSON.stringify({ user_id: userId, role_name: roleName })
+                });
+                const data = await res.json();
+                if (data.success) showToast(data.message);
+                else showToast(data.message, 'error');
+            } catch { showToast('Network error', 'error'); }
+        }
+
+        // ─── Seasons ────────────────────────────────────────────────
+        async function loadSeasons() {
+            try {
+                const res = await fetch('/api/seasons');
+                const seasons = await res.json();
+                document.getElementById('seasonsList').innerHTML = seasons.map(s => `
+            <div style="display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid var(--border);">
+                <strong>${esc(s.name)}</strong>
+                <span class="text-muted">${s.start_date} → ${s.end_date}</span>
+            </div>
+        `).join('') || '<p class="text-muted">No seasons yet.</p>';
+
+                // Populate tournament season dropdown
+                document.getElementById('tSeason').innerHTML = seasons.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+            } catch { }
+        }
+
+        async function createSeason(e) {
+            e.preventDefault();
+            try {
+                const res = await fetch('/api/seasons', {
+                    method: 'POST', headers: authHeaders(),
+                    body: JSON.stringify({
+                        name: document.getElementById('sName').value,
+                        start_date: document.getElementById('sStart').value,
+                        end_date: document.getElementById('sEnd').value
+                    })
+                });
+                const data = await res.json();
+                if (data.success) { showToast('Season created'); loadSeasons(); document.getElementById('seasonForm').classList.add('hidden'); }
+                else showToast(data.message, 'error');
+            } catch { showToast('Network error', 'error'); }
+        }
+
+        // ─── Tournaments ────────────────────────────────────────────
+        async function loadTournaments() {
+            try {
+                const res = await fetch('/api/tournaments');
+                const data = await res.json();
+                document.getElementById('tournamentsList').innerHTML = data.map(t => `
+            <div style="padding:0.5rem 0; border-bottom:1px solid var(--border);">
+                <strong>${esc(t.name)}</strong>
+            </div>
+        `).join('') || '<p class="text-muted">No tournaments yet.</p>';
+            } catch { }
+        }
+
+        async function createTournament(e) {
+            e.preventDefault();
+            try {
+                const res = await fetch('/api/tournaments', {
+                    method: 'POST', headers: authHeaders(),
+                    body: JSON.stringify({
+                        name: document.getElementById('tName').value,
+                        season_id: parseInt(document.getElementById('tSeason').value)
+                    })
+                });
+                const data = await res.json();
+                if (data.success) { showToast('Tournament created'); loadTournaments(); document.getElementById('tournamentForm').classList.add('hidden'); }
+                else showToast(data.message, 'error');
+            } catch { showToast('Network error', 'error'); }
+        }
+
+        // Load everything
+        loadPending();
+        loadUsers();
+        loadSeasons();
+        loadTournaments();
+    </script>
+</body>
+
+</html>

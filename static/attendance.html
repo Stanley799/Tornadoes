@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance — Tornadoes Handball</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <nav class="navbar">
+            <div class="container">
+                <a href="/" class="navbar-brand"><span class="icon">🏐</span> Tornadoes</a>
+                <ul class="navbar-links">
+                    <li><a href="/dashboard.html">Dashboard</a></li>
+                    <li><a href="/matches.html">Matches</a></li>
+                    <li><a href="/attendance.html" class="active">Attendance</a></li>
+                    <li><a href="/antidoping.html">Anti-Doping</a></li>
+                    <li><a href="/admin.html" id="adminLink" class="hidden">Admin</a></li>
+                </ul>
+                <div class="navbar-auth">
+                    <button onclick="logout()" class="btn btn-outline btn-sm">Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="page-content">
+            <div class="container">
+                <div class="section-header">
+                    <h2>✅ Attendance</h2>
+                </div>
+
+                <!-- Coach bulk attendance -->
+                <div id="coachSection" class="hidden" style="margin-bottom:2rem;">
+                    <div class="card">
+                        <h3 style="margin-bottom:1rem;">Mark Attendance</h3>
+                        <div class="form-group">
+                            <label class="form-label">Select Match</label>
+                            <select class="form-select" id="matchSelect" onchange="loadPlayersForMatch()"></select>
+                        </div>
+                        <div id="playerList"></div>
+                        <button class="btn btn-primary mt-2" onclick="saveBulkAttendance()" id="saveBtn"
+                            style="display:none;">Save Attendance</button>
+                    </div>
+                </div>
+
+                <!-- Attendance Records Table -->
+                <h3 style="margin-bottom:1rem;">Attendance Records</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>Match</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceBody"></tbody>
+                    </table>
+                </div>
+                <p id="noRecords" class="text-muted text-center mt-2 hidden">No attendance records yet.</p>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <div class="container">© 2026 Tornadoes Handball</div>
+        </footer>
+    </div>
+    <div class="toast-container" id="toasts"></div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('userRole');
+        if (!token) window.location.href = '/login.html';
+        if (role === 'admin' || role === 'coach') {
+            document.getElementById('coachSection').classList.remove('hidden');
+            document.getElementById('adminLink').classList.remove('hidden');
+        }
+
+        function authHeaders() { return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }; }
+        function showToast(m, t = 'success') { const d = document.createElement('div'); d.className = `toast toast-${t}`; d.textContent = m; document.getElementById('toasts').appendChild(d); setTimeout(() => d.remove(), 3500); }
+        function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+        function logout() { localStorage.clear(); window.location.href = '/'; }
+
+        let players = [];
+        let matches = [];
+
+        async function loadData() {
+            try {
+                // Load matches for dropdown
+                const mRes = await fetch('/api/matches');
+                matches = await mRes.json();
+                document.getElementById('matchSelect').innerHTML = '<option value="">Select a match</option>' +
+                    matches.map(m => `<option value="${m.id}">vs ${esc(m.opponent)} — ${m.date}</option>`).join('');
+
+                // Load attendance records
+                const aRes = await fetch('/api/attendance/list', { headers: authHeaders() });
+                const records = await aRes.json();
+                renderRecords(records);
+
+                // Load users for coach
+                if (role === 'admin' || role === 'coach') {
+                    const uRes = await fetch('/api/users', { headers: authHeaders() });
+                    players = await uRes.json();
+                }
+            } catch { }
+        }
+
+        function renderRecords(records) {
+            const body = document.getElementById('attendanceBody');
+            if (!records.length) { body.innerHTML = ''; document.getElementById('noRecords').classList.remove('hidden'); return; }
+            document.getElementById('noRecords').classList.add('hidden');
+
+            // Map match IDs to names
+            const matchMap = {};
+            matches.forEach(m => matchMap[m.id] = `vs ${m.opponent} (${m.date})`);
+
+            body.innerHTML = records.map(r => `
+        <tr>
+            <td>${esc(r.user_name || 'User #' + r.user_id)}</td>
+            <td>${esc(matchMap[r.match_id] || 'Match #' + r.match_id)}</td>
+            <td><span class="badge ${r.present ? 'badge-present' : 'badge-absent'}">${r.present ? 'PRESENT' : 'ABSENT'}</span></td>
+        </tr>
+    `).join('');
+        }
+
+        function loadPlayersForMatch() {
+            const matchId = document.getElementById('matchSelect').value;
+            if (!matchId || !players.length) { document.getElementById('playerList').innerHTML = ''; document.getElementById('saveBtn').style.display = 'none'; return; }
+            document.getElementById('saveBtn').style.display = 'inline-flex';
+            document.getElementById('playerList').innerHTML = players.map(p => `
+        <div style="display:flex; align-items:center; gap:0.8rem; padding:0.5rem 0; border-bottom:1px solid var(--border);">
+            <label style="flex:1; font-weight:500;">${esc(p.name)} <span class="badge badge-role">${p.role}</span></label>
+            <select class="form-select" style="width:auto;" data-user-id="${p.id}">
+                <option value="true">Present</option>
+                <option value="false">Absent</option>
+            </select>
+        </div>
+    `).join('');
+        }
+
+        async function saveBulkAttendance() {
+            const matchId = parseInt(document.getElementById('matchSelect').value);
+            if (!matchId) return;
+            const selects = document.querySelectorAll('#playerList select[data-user-id]');
+            const records = Array.from(selects).map(s => ({
+                user_id: parseInt(s.dataset.userId),
+                present: s.value === 'true'
+            }));
+
+            try {
+                const res = await fetch('/api/attendance/bulk', {
+                    method: 'POST', headers: authHeaders(),
+                    body: JSON.stringify({ match_id: matchId, records })
+                });
+                const data = await res.json();
+                if (data.success) { showToast(data.message); loadData(); }
+                else showToast(data.message, 'error');
+            } catch { showToast('Network error', 'error'); }
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>

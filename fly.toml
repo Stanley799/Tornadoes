@@ -1,0 +1,20 @@
+app = "tornadoes-handball"
+primary_region = "jnb"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  DATABASE_URL = "sqlite:///data/tornadoes.db"
+  JWT_SECRET = "change-this-to-a-real-secret-in-production"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+[mounts]
+  source = "tornadoes_data"
+  destination = "/data"

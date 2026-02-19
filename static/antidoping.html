@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Anti-Doping resources for Tornadoes Handball. Check your medication with Global DRO and ADAK.">
+    <title>Anti-Doping — Tornadoes Handball</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <nav class="navbar">
+            <div class="container">
+                <a href="/" class="navbar-brand"><span class="icon">🏐</span> Tornadoes</a>
+                <ul class="navbar-links" id="navLinks">
+                    <li><a href="/antidoping.html" class="active">Anti-Doping</a></li>
+                </ul>
+                <div class="navbar-auth" id="navAuth">
+                    <a href="/login.html" class="btn btn-outline btn-sm">Login</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="page-content">
+            <div class="container">
+                <div class="antidoping-hero">
+                    <h1>🛡️ Anti-Doping Awareness</h1>
+                    <p class="text-muted" style="max-width:600px; margin:0 auto; font-size:1.05rem; line-height:1.7;">
+                        As athletes, we are responsible for everything we put into our bodies.
+                        Always verify your medication before use. The resources below are your
+                        first line of defense.
+                    </p>
+                </div>
+
+                <!-- Critical alert -->
+                <div class="alert alert-warning" style="max-width:700px; margin:0 auto 2rem;">
+                    <span style="font-size:1.5rem;">⚠️</span>
+                    <div>
+                        <strong>ALWAYS check your medication before taking it.</strong><br>
+                        Even common over-the-counter drugs can contain prohibited substances.
+                        Use the resources below every time.
+                    </div>
+                </div>
+
+                <!-- Resources -->
+                <div style="max-width:700px; margin:0 auto;">
+                    <a href="https://www.globaldro.com/" target="_blank" rel="noopener" class="antidoping-resource">
+                        <div class="resource-icon">🌍</div>
+                        <div>
+                            <h3>Global DRO</h3>
+                            <p>The Global Drug Reference Online — check if your medication is prohibited in sport.
+                                Covers 800+ substances across multiple sports worldwide.</p>
+                        </div>
+                    </a>
+
+                    <a href="https://www.adak.or.ke/" target="_blank" rel="noopener" class="antidoping-resource">
+                        <div class="resource-icon">🇰🇪</div>
+                        <div>
+                            <h3>ADAK — Anti-Doping Agency of Kenya</h3>
+                            <p>Kenya's national anti-doping organization. Find local testing protocols, education
+                                programs, and Kenyan-specific guidance.</p>
+                        </div>
+                    </a>
+
+                    <a href="https://www.wada-ama.org/en/prohibited-list" target="_blank" rel="noopener"
+                        class="antidoping-resource">
+                        <div class="resource-icon">📋</div>
+                        <div>
+                            <h3>WADA Prohibited List</h3>
+                            <p>The World Anti-Doping Agency's official list of prohibited substances and methods,
+                                updated annually.</p>
+                        </div>
+                    </a>
+
+                    <a href="https://www.wada-ama.org/en/athlete-reference-guide-2021-world-anti-doping-code"
+                        target="_blank" rel="noopener" class="antidoping-resource">
+                        <div class="resource-icon">📖</div>
+                        <div>
+                            <h3>Athlete's Guide to the Code</h3>
+                            <p>A plain-language guide to your rights and responsibilities under the World Anti-Doping
+                                Code.</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Key rules -->
+                <div class="card" style="max-width:700px; margin:2rem auto;">
+                    <h3 style="margin-bottom:1rem;">🏅 Key Rules to Remember</h3>
+                    <ul style="list-style:none; padding:0;">
+                        <li style="padding:0.6rem 0; border-bottom:1px solid var(--border); display:flex; gap:0.7rem;">
+                            <span>1.</span><span><strong>Strict Liability:</strong> You are responsible for any
+                                substance found in your body, regardless of how it got there.</span>
+                        </li>
+                        <li style="padding:0.6rem 0; border-bottom:1px solid var(--border); display:flex; gap:0.7rem;">
+                            <span>2.</span><span><strong>Check Every Time:</strong> Use Global DRO before taking any
+                                medication, supplement, or remedy.</span>
+                        </li>
+                        <li style="padding:0.6rem 0; border-bottom:1px solid var(--border); display:flex; gap:0.7rem;">
+                            <span>3.</span><span><strong>TUE:</strong> If you need a prohibited substance for medical
+                                reasons, apply for a Therapeutic Use Exemption before use.</span>
+                        </li>
+                        <li style="padding:0.6rem 0; display:flex; gap:0.7rem;">
+                            <span>4.</span><span><strong>Supplements Risk:</strong> Supplements are a major source of
+                                inadvertent doping. Only use certified/tested products.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <div class="container">© 2026 Tornadoes Handball · Play Clean</div>
+        </footer>
+    </div>
+
+    <script>
+        // Show authenticated nav if logged in
+        (function () {
+            const token = localStorage.getItem('token');
+            const name = localStorage.getItem('userName');
+            const role = localStorage.getItem('userRole');
+            if (token && name) {
+                document.getElementById('navLinks').innerHTML = `
+            <li><a href="/dashboard.html">Dashboard</a></li>
+            <li><a href="/matches.html">Matches</a></li>
+            <li><a href="/attendance.html">Attendance</a></li>
+            <li><a href="/antidoping.html" class="active">Anti-Doping</a></li>
+            ${role === 'admin' || role === 'coach' ? '<li><a href="/admin.html">Admin</a></li>' : ''}
+        `;
+                document.getElementById('navAuth').innerHTML = `
+            <button onclick="localStorage.clear(); window.location.href='/'" class="btn btn-outline btn-sm">Logout</button>
+        `;
+            }
+        })();
+    </script>
+</body>
+
+</html>

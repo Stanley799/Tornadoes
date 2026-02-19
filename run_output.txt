@@ -1,0 +1,63 @@
+﻿warning: unused import: `SqlitePool`
+ --> src\main.rs:9:42
+  |
+9 | use sqlx::sqlite::{SqliteConnectOptions, SqlitePool, SqlitePoolOptions};
+  |                                          ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+System.Management.Automation.RemoteException
+warning: function `require_role` is never used
+  --> src\auth.rs:91:8
+   |
+91 | pub fn require_role(claims: &Claims, required: &str) -> Result<(), AppError> {
+   |        ^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+System.Management.Automation.RemoteException
+warning: `handball_team_app` (bin "handball_team_app") generated 2 warnings (run `cargo fix --bin "handball_team_app" -p handball_team_app` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.42s
+     Running `target\debug\handball_team_app.exe`
+System.Management.Automation.RemoteException
+thread 'main' (25980) panicked at src\main.rs:21:49:
+DATABASE_URL must be set in .env: NotPresent
+stack backtrace:
+   0: std::panicking::panic_handler
+             at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\std\src\panicking.rs:689
+   1: core::panicking::panic_fmt
+             at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\core\src\panicking.rs:80
+   2: core::result::unwrap_failed
+             at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf/library\core\src\result.rs:1867
+   3: enum2$<core::result::Result<alloc::string::String,enum2$<std::env::VarError> > >::expect<alloc::string::String,enum2$<std::env::VarError> >
+             at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\core\src\result.rs:1185
+   4: handball_team_app::main::async_block$0
+             at .\src\main.rs:21
+   5: core::future::future::impl$1::poll<alloc::boxed::Box<enum2$<handball_team_app::main::async_block_env$0>,alloc::alloc::Global> >
+             at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\core\src\future\future.rs:133
+   6: tokio::runtime::park::impl$4::block_on::closure$0<core::pin::Pin<alloc::boxed::Box<enum2$<handball_team_app::main::async_block_env$0>,alloc::alloc::Global> > >
+             at C:\Users\Stalozran\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.49.0\src\runtime\park.rs:284
+   7: tokio::task::coop::with_budget
+             at C:\Users\Stalozran\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.49.0\src\task\coop\mod.rs:167
+   8: tokio::task::coop::budget
+             at C:\Users\Stalozran\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.49.0\src\task\coop\mod.rs:133
+   9: tokio::runtime::park::CachedParkThread::block_on<core::pin::Pin<alloc::boxed::Box<enum2$<handball_team_app::main::async_block_env$0>,alloc::alloc::Global> > >
+             at C:\Users\Stalozran\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.49.0\src\runtime\park.rs:284
+  10: tokio::runtime::context::blocking::BlockingRegionGuard::block_on<core::pin::Pin<alloc::boxed::Box<enum2$<handball_team_app::main::async_block_env$0>,alloc::alloc::Global> > >
+             at C:\Users\Stalozran\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.49.0\src\runtime\context\blocking.rs:66
+  11: tokio::runtime::scheduler::multi_thread::impl$0::block_on::closure$0<core::pin::Pin<alloc::boxed::Box<enum2$<handball_team_app::main::async_block_env$0>,alloc::alloc::Global> > >
+             at C:\Users\Stalozran\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.49.0\src\runtime\scheduler\multi_thread\mod.rs:89
+  12: tokio::runtime::context::runtime::enter_runtime<tokio::runtime::scheduler::multi_thread::impl$0::block_on::closure_env$0<core::pin::Pin<alloc::boxed::Box<enum2$<handball_team_app::main::async_block_env$0>,alloc::alloc::Global> > >,tuple$<> >
+             at C:\Users\Stalozran\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.49.0\src\runtime\context\runtime.rs:65
+  13: tokio::runtime::scheduler::multi_thread::MultiThread::block_on<core::pin::Pin<alloc::boxed::Box<enum2$<handball_team_app::main::async_block_env$0>,alloc::alloc::Global> > >
+             at C:\Users\Stalozran\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.49.0\src\runtime\scheduler\multi_thread\mod.rs:88
+  14: tokio::runtime::runtime::Runtime::block_on_inner<core::pin::Pin<alloc::boxed::Box<enum2$<handball_team_app::main::async_block_env$0>,alloc::alloc::Global> > >
+             at C:\Users\Stalozran\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.49.0\src\runtime\runtime.rs:370
+  15: tokio::runtime::runtime::Runtime::block_on<enum2$<handball_team_app::main::async_block_env$0> >
+             at C:\Users\Stalozran\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.49.0\src\runtime\runtime.rs:340
+  16: handball_team_app::main
+             at .\src\main.rs:93
+  17: core::ops::function::FnOnce::call_once<void (*)(),tuple$<> >
+             at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\core\src\ops\function.rs:250
+  18: core::hint::black_box
+             at /rustc/01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\library\core\src\hint.rs:473
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+error: process didn't exit successfully: `target\debug\handball_team_app.exe` (exit code: 101)
