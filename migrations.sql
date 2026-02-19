@@ -1,4 +1,4 @@
--- Roles table (must be created before users)
+git -- Roles table (must be created before users)
 CREATE TABLE IF NOT EXISTS roles (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE
