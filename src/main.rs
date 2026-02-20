@@ -6,7 +6,7 @@ mod models;
 
 use axum::{middleware, routing::{get, post}, Router};
 use dotenvy::dotenv;
-use sqlx::sqlite::{SqliteConnectOptions, SqlitePool, SqlitePoolOptions};
+use sqlx::postgres::{PgConnectOptions, PgPool, PgPoolOptions};
 use std::env;
 use std::net::SocketAddr;
 use std::str::FromStr;
@@ -15,28 +15,28 @@ use tower_http::services::ServeDir;
 #[tokio::main]
 async fn main() {
     // Load environment
-        // Debug: print current working directory
-        println!("Current dir: {:?}", std::env::current_dir().unwrap());
-        match dotenvy::from_filename(".env") {
-            Ok(_) => println!("Loaded .env successfully"),
-            Err(e) => println!("Failed to load .env: {:?}", e),
-        }
-        // Debug: print DATABASE_URL env var
-        println!("DATABASE_URL: {:?}", std::env::var("DATABASE_URL"));
+    // Load .env file from current or parent directory
+    if let Err(e) = dotenvy::dotenv() {
+        println!("Warning: failed to load .env file: {:?}", e);
+    }
+    // Debug: print DATABASE_URL after loading .env
+    match std::env::var("DATABASE_URL") {
+        Ok(val) => println!("DEBUG: DATABASE_URL loaded: {}", val),
+        Err(e) => println!("DEBUG: DATABASE_URL not found: {:?}", e),
+    }
     tracing_subscriber::fmt::init();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env");
 
-    // Connect to SQLite — create database file if it doesn't exist
-    let connect_options = SqliteConnectOptions::from_str(&database_url)
-        .expect("Invalid DATABASE_URL")
-        .create_if_missing(true);
+    // Connect to PostgreSQL
+    let connect_options = PgConnectOptions::from_str(&database_url)
+        .expect("Invalid DATABASE_URL");
 
-    let pool = SqlitePoolOptions::new()
+    let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect_with(connect_options)
         .await
-        .expect("Failed to connect to SQLite");
+        .expect("Failed to connect to PostgreSQL");
 
     // Initialize database
     db::run_migrations(&pool).await;

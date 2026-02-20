@@ -1,5 +1,5 @@
 use axum::{extract::State, response::IntoResponse, Extension, Json};
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 
 use crate::auth::{require_coach_or_admin, Claims};
 use crate::errors::AppError;
@@ -7,7 +7,7 @@ use crate::models::{ApiResponse, AttendanceBulkRequest, AttendanceMarkRequest, A
 
 /// POST /api/attendance — Coach/Admin marks a single player's attendance
 pub async fn mark_attendance(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
     Extension(claims): Extension<Claims>,
     Json(payload): Json<AttendanceMarkRequest>,
 ) -> Result<impl IntoResponse, AppError> {
@@ -15,8 +15,8 @@ pub async fn mark_attendance(
 
     // Upsert: insert or update attendance
     sqlx::query(
-        "INSERT INTO attendance (user_id, match_id, present) VALUES (?, ?, ?) \
-         ON CONFLICT(user_id, match_id) DO UPDATE SET present = excluded.present",
+        "INSERT INTO attendance (user_id, match_id, present) VALUES ($1, $2, $3) \
+         ON CONFLICT (user_id, match_id) DO UPDATE SET present = EXCLUDED.present"
     )
     .bind(payload.user_id)
     .bind(payload.match_id)
@@ -32,7 +32,7 @@ pub async fn mark_attendance(
 
 /// POST /api/attendance/bulk — Coach/Admin marks attendance for multiple players
 pub async fn mark_attendance_bulk(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
     Extension(claims): Extension<Claims>,
     Json(payload): Json<AttendanceBulkRequest>,
 ) -> Result<impl IntoResponse, AppError> {
@@ -40,8 +40,8 @@ pub async fn mark_attendance_bulk(
 
     for record in &payload.records {
         sqlx::query(
-            "INSERT INTO attendance (user_id, match_id, present) VALUES (?, ?, ?) \
-             ON CONFLICT(user_id, match_id) DO UPDATE SET present = excluded.present",
+            "INSERT INTO attendance (user_id, match_id, present) VALUES ($1, $2, $3) \
+             ON CONFLICT (user_id, match_id) DO UPDATE SET present = EXCLUDED.present"
         )
         .bind(record.user_id)
         .bind(payload.match_id)
@@ -59,7 +59,7 @@ pub async fn mark_attendance_bulk(
 /// GET /api/attendance — Returns attendance records.
 /// Coach/Admin: all records. Player: only their own.
 pub async fn list_attendance(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
     Extension(claims): Extension<Claims>,
 ) -> Result<impl IntoResponse, AppError> {
     let rows = if claims.role == "coach" || claims.role == "admin" {

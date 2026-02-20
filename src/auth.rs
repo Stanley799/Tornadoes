@@ -1,3 +1,4 @@
+use sqlx::Row;
 use axum::{
     extract::{Request, State},
     http,
@@ -9,7 +10,7 @@ use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use argon2::password_hash::{rand_core::OsRng, SaltString};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 
 use crate::errors::AppError;
 use crate::models::{AuthResponse, LoginRequest, RegisterRequest};
@@ -114,7 +115,7 @@ pub fn require_coach_or_admin(claims: &Claims) -> Result<(), AppError> {
 
 /// POST /api/register — Create a new user account
 pub async fn register_handler(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
     Json(payload): Json<RegisterRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     // Validate input
@@ -126,7 +127,7 @@ pub async fn register_handler(
     }
 
     // Check if email already exists
-    let exists: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM users WHERE email = ?")
+    let exists: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM users WHERE email = $1")
         .bind(&payload.email)
         .fetch_one(&pool)
         .await?;
@@ -146,16 +147,16 @@ pub async fn register_handler(
     // Default role: player (id=1)
     let role_id: i64 = 1;
     let result = sqlx::query(
-        "INSERT INTO users (email, password_hash, name, role_id, created_at) VALUES (?, ?, ?, ?, datetime('now'))",
+        "INSERT INTO users (email, password_hash, name, role_id, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id",
     )
     .bind(&payload.email)
     .bind(&password_hash)
     .bind(&payload.name)
     .bind(role_id)
-    .execute(&pool)
+    .fetch_one(&pool)
     .await?;
 
-    let user_id = result.last_insert_rowid();
+    let user_id: i64 = result.get(0);
 
     // Issue JWT
     let token = create_token(user_id, &payload.email, "player", &payload.name)?;
@@ -172,12 +173,12 @@ pub async fn register_handler(
 
 /// POST /api/login — Authenticate and receive JWT
 pub async fn login_handler(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
     Json(payload): Json<LoginRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     // Find user by email
     let user = sqlx::query_as::<_, (i64, String, String, i64)>(
-        "SELECT id, password_hash, name, role_id FROM users WHERE email = ?",
+        "SELECT id, password_hash, name, role_id FROM users WHERE email = $1",
     )
     .bind(&payload.email)
     .fetch_optional(&pool)
@@ -196,7 +197,7 @@ pub async fn login_handler(
         .map_err(|_| AppError::Unauthorized("Invalid email or password".into()))?;
 
     // Get role name
-    let role_name: (String,) = sqlx::query_as("SELECT name FROM roles WHERE id = ?")
+    let role_name: (String,) = sqlx::query_as("SELECT name FROM roles WHERE id = $1")
         .bind(role_id)
         .fetch_one(&pool)
         .await?;

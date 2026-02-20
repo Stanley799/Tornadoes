@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: handball_postgres
+    environment:
+      POSTGRES_USER: Tornadoes
+      POSTGRES_PASSWORD: Seblent2568.
+      POSTGRES_DB: handball_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

@@ -1,5 +1,5 @@
 use axum::{extract::State, response::IntoResponse, Extension, Json};
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 
 use crate::auth::{require_coach_or_admin, Claims};
 use crate::errors::AppError;
@@ -12,7 +12,7 @@ use crate::models::{
 
 /// POST /api/seasons — Admin creates a season
 pub async fn create_season(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
     Extension(claims): Extension<Claims>,
     Json(payload): Json<SeasonCreateRequest>,
 ) -> Result<impl IntoResponse, AppError> {
@@ -22,7 +22,7 @@ pub async fn create_season(
         return Err(AppError::BadRequest("Season name is required".into()));
     }
 
-    sqlx::query("INSERT INTO seasons (name, start_date, end_date) VALUES (?, ?, ?)")
+    sqlx::query("INSERT INTO seasons (name, start_date, end_date) VALUES ($1, $2, $3)")
         .bind(&payload.name)
         .bind(&payload.start_date)
         .bind(&payload.end_date)
@@ -37,7 +37,7 @@ pub async fn create_season(
 
 /// GET /api/seasons — Public: list all seasons
 pub async fn list_seasons(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
 ) -> Result<impl IntoResponse, AppError> {
     let rows = sqlx::query_as::<_, (i64, String, String, String)>(
         "SELECT id, name, start_date, end_date FROM seasons ORDER BY start_date DESC",
@@ -62,7 +62,7 @@ pub async fn list_seasons(
 
 /// POST /api/tournaments — Admin creates a tournament
 pub async fn create_tournament(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
     Extension(claims): Extension<Claims>,
     Json(payload): Json<TournamentCreateRequest>,
 ) -> Result<impl IntoResponse, AppError> {
@@ -86,7 +86,7 @@ pub async fn create_tournament(
 
 /// GET /api/tournaments — Public: list all tournaments
 pub async fn list_tournaments(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
 ) -> Result<impl IntoResponse, AppError> {
     let rows = sqlx::query_as::<_, (i64, String, i64)>(
         "SELECT id, name, season_id FROM tournaments ORDER BY id DESC",
@@ -110,7 +110,7 @@ pub async fn list_tournaments(
 
 /// GET /api/users — Admin: list all users
 pub async fn list_users(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
     Extension(claims): Extension<Claims>,
 ) -> Result<impl IntoResponse, AppError> {
     require_coach_or_admin(&claims)?;
@@ -136,7 +136,7 @@ pub async fn list_users(
 
 /// POST /api/users/role — Admin: change a user's role
 pub async fn update_user_role(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
     Extension(claims): Extension<Claims>,
     Json(payload): Json<RoleUpdateRequest>,
 ) -> Result<impl IntoResponse, AppError> {

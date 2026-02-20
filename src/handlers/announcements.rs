@@ -1,5 +1,5 @@
 use axum::{extract::State, response::IntoResponse, Extension, Json};
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 
 use crate::auth::{require_coach_or_admin, Claims};
 use crate::errors::AppError;
@@ -9,7 +9,7 @@ use crate::models::{
 
 /// POST /api/announcements — Any authenticated user can submit (status = pending)
 pub async fn create_announcement(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
     Extension(claims): Extension<Claims>,
     Json(payload): Json<AnnouncementCreateRequest>,
 ) -> Result<impl IntoResponse, AppError> {
@@ -19,7 +19,7 @@ pub async fn create_announcement(
 
     sqlx::query(
         "INSERT INTO announcements (title, content, external_link, author_id, created_at, status) \
-         VALUES (?, ?, ?, ?, datetime('now'), 'pending')",
+         VALUES ($1, $2, $3, $4, NOW(), 'pending')"
     )
     .bind(&payload.title)
     .bind(&payload.content)
@@ -36,7 +36,7 @@ pub async fn create_announcement(
 
 /// POST /api/announcements/approve — Coach/Admin approves a pending announcement
 pub async fn approve_announcement(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
     Extension(claims): Extension<Claims>,
     Json(payload): Json<ApproveRequest>,
 ) -> Result<impl IntoResponse, AppError> {
@@ -59,7 +59,7 @@ pub async fn approve_announcement(
 
 /// GET /api/announcements — Public: list approved announcements
 pub async fn list_announcements(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
 ) -> Result<impl IntoResponse, AppError> {
     let rows = sqlx::query_as::<_, (i64, String, String, Option<String>, i64, String, String)>(
         "SELECT a.id, a.title, a.content, a.external_link, a.author_id, a.created_at, a.status \
@@ -89,7 +89,7 @@ pub async fn list_announcements(
 
 /// GET /api/announcements/pending — Coach/Admin: list pending announcements
 pub async fn list_pending_announcements(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
     Extension(claims): Extension<Claims>,
 ) -> Result<impl IntoResponse, AppError> {
     require_coach_or_admin(&claims)?;

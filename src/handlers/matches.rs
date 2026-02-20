@@ -1,5 +1,5 @@
 use axum::{extract::State, response::IntoResponse, Extension, Json};
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 
 use crate::auth::{require_coach_or_admin, Claims};
 use crate::errors::AppError;
@@ -7,7 +7,7 @@ use crate::models::{ApiResponse, MatchCreateRequest, MatchResponse, MatchUpdateR
 
 /// POST /api/matches — Coach/Admin creates a new match
 pub async fn create_match(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
     Extension(claims): Extension<Claims>,
     Json(payload): Json<MatchCreateRequest>,
 ) -> Result<impl IntoResponse, AppError> {
@@ -19,7 +19,7 @@ pub async fn create_match(
 
     sqlx::query(
         "INSERT INTO matches (date, opponent, venue, result, score, match_link, season_id, tournament_id) \
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
     )
     .bind(&payload.date)
     .bind(&payload.opponent)
@@ -40,14 +40,14 @@ pub async fn create_match(
 
 /// POST /api/matches/update — Coach/Admin updates match result/score
 pub async fn update_match(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
     Extension(claims): Extension<Claims>,
     Json(payload): Json<MatchUpdateRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     require_coach_or_admin(&claims)?;
 
     let result = sqlx::query(
-        "UPDATE matches SET result = ?, score = ?, match_link = COALESCE(?, match_link) WHERE id = ?",
+        "UPDATE matches SET result = $1, score = $2, match_link = COALESCE($3, match_link) WHERE id = $4"
     )
     .bind(&payload.result)
     .bind(&payload.score)
@@ -68,7 +68,7 @@ pub async fn update_match(
 
 /// GET /api/matches — Public: list all matches (newest first)
 pub async fn list_matches(
-    State(pool): State<SqlitePool>,
+    State(pool): State<PgPool>,
 ) -> Result<impl IntoResponse, AppError> {
     let rows = sqlx::query_as::<_, (i64, String, String, String, Option<String>, Option<String>, Option<String>, i64, Option<i64>)>(
         "SELECT id, date, opponent, venue, result, score, match_link, season_id, tournament_id \

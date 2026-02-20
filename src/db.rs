@@ -1,9 +1,9 @@
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 use std::fs;
 
 /// Run SQL migrations from migrations.sql file.
 /// Each statement is separated by `;` and executed sequentially.
-pub async fn run_migrations(pool: &SqlitePool) {
+pub async fn run_migrations(pool: &PgPool) {
     let sql = fs::read_to_string("migrations.sql").expect("Failed to read migrations.sql");
     for statement in sql.split(';') {
         let stmt = statement.trim();
@@ -18,10 +18,10 @@ pub async fn run_migrations(pool: &SqlitePool) {
 }
 
 /// Seed default roles (player, coach, admin) if not already present.
-pub async fn seed_roles(pool: &SqlitePool) {
+pub async fn seed_roles(pool: &PgPool) {
     let roles = ["player", "coach", "admin"];
     for role in roles.iter() {
-        let _ = sqlx::query("INSERT OR IGNORE INTO roles (name) VALUES (?)")
+        let _ = sqlx::query("INSERT INTO roles (name) VALUES ($1) ON CONFLICT (name) DO NOTHING")
             .bind(role)
             .execute(pool)
             .await;
