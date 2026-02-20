@@ -5,8 +5,7 @@ mod handlers;
 mod models;
 
 use axum::{middleware, routing::{get, post}, Router};
-use dotenvy::dotenv;
-use sqlx::postgres::{PgConnectOptions, PgPool, PgPoolOptions};
+use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 use std::env;
 use std::net::SocketAddr;
 use std::str::FromStr;
@@ -27,11 +26,8 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env");
-
-    // Connect to PostgreSQL
     let connect_options = PgConnectOptions::from_str(&database_url)
         .expect("Invalid DATABASE_URL");
-
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect_with(connect_options)
@@ -59,20 +55,28 @@ async fn main() {
         // Announcements
         .route("/api/announcements", post(handlers::announcements::create_announcement))
         .route("/api/announcements/approve", post(handlers::announcements::approve_announcement))
+        .route("/api/announcements/reject", post(handlers::announcements::reject_announcement))
         .route("/api/announcements/pending", get(handlers::announcements::list_pending_announcements))
         // Matches
         .route("/api/matches", post(handlers::matches::create_match))
         .route("/api/matches/update", post(handlers::matches::update_match))
+        .route("/api/matches/:id", axum::routing::delete(handlers::matches::delete_match))
         // Attendance
         .route("/api/attendance", post(handlers::attendance::mark_attendance))
         .route("/api/attendance/bulk", post(handlers::attendance::mark_attendance_bulk))
         .route("/api/attendance/list", get(handlers::attendance::list_attendance))
         // Seasons & Tournaments
         .route("/api/seasons", post(handlers::seasons::create_season))
+        .route("/api/seasons/:id", axum::routing::delete(handlers::seasons::delete_season))
+        .route("/api/seasons/:id", axum::routing::patch(handlers::seasons::update_season))
         .route("/api/tournaments", post(handlers::seasons::create_tournament))
+        .route("/api/tournaments/:id", axum::routing::delete(handlers::seasons::delete_tournament))
+        .route("/api/tournaments/:id", axum::routing::patch(handlers::seasons::update_tournament))
         // User management
         .route("/api/users", get(handlers::seasons::list_users))
         .route("/api/users/role", post(handlers::seasons::update_user_role))
+        .route("/api/users/:id", axum::routing::delete(handlers::seasons::delete_user))
+        .route("/api/users/:id", axum::routing::patch(handlers::seasons::update_user))
         // Apply auth middleware to all protected routes
         .layer(middleware::from_fn(auth::auth_middleware));
 

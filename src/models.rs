@@ -1,3 +1,21 @@
+#[derive(Deserialize)]
+pub struct UserUpdateRequest {
+    pub name: String,
+    pub email: String,
+    pub role: String,
+}
+#[derive(Deserialize)]
+pub struct SeasonUpdateRequest {
+    pub name: String,
+    pub start_date: String,
+    pub end_date: String,
+}
+
+#[derive(Deserialize)]
+pub struct TournamentUpdateRequest {
+    pub name: String,
+    pub season_id: i64,
+}
 use serde::{Deserialize, Serialize};
 
 // ─── Generic API Response ────────────────────────────────────────────

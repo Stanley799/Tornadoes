@@ -1,3 +1,22 @@
+/// POST /api/announcements/reject — Coach/Admin rejects a pending announcement
+pub async fn reject_announcement(
+    State(pool): State<PgPool>,
+    Extension(claims): Extension<Claims>,
+    Json(payload): Json<ApproveRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    require_coach_or_admin(&claims)?;
+    let result = sqlx::query("UPDATE announcements SET status = 'rejected' WHERE id = ? AND status = 'pending'")
+        .bind(payload.id)
+        .execute(&pool)
+        .await?;
+    if result.rows_affected() == 0 {
+        return Err(AppError::NotFound("Announcement not found or already processed".into()));
+    }
+    Ok(Json(ApiResponse {
+        success: true,
+        message: "Announcement rejected.".into(),
+    }))
+}
 use axum::{extract::State, response::IntoResponse, Extension, Json};
 use sqlx::PgPool;
 
@@ -16,7 +35,10 @@ pub async fn create_announcement(
     if payload.title.is_empty() || payload.content.is_empty() {
         return Err(AppError::BadRequest("Title and content are required".into()));
     }
-
+    // Only users can post announcements
+    if claims.role != "user" {
+        return Err(AppError::Unauthorized("Only users can post announcements.".into()));
+    }
     sqlx::query(
         "INSERT INTO announcements (title, content, external_link, author_id, created_at, status) \
          VALUES ($1, $2, $3, $4, NOW(), 'pending')"

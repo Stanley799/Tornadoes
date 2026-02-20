@@ -12,6 +12,22 @@
     <div class="page-wrapper">
         <nav class="navbar">
             <div class="container">
+                                <!-- Initial Data Entry Checklist -->
+                                <div class="card" id="dataChecklistCard" style="margin-bottom:1.5rem; background:#f8f9fa; border:1px solid #e0e0e0;">
+                                    <div class="section-header" style="display:flex; align-items:center; justify-content:space-between;">
+                                        <h3>📝 Initial Setup Checklist</h3>
+                                        <button class="btn btn-outline btn-sm" onclick="document.getElementById('dataChecklistCard').style.display='none'">Dismiss</button>
+                                    </div>
+                                    <ul style="margin:0 0 1rem 1.5rem;">
+                                        <li><strong>Add team members</strong> (users/roles)</li>
+                                        <li><strong>Create at least one season</strong></li>
+                                        <li><strong>Add tournaments (optional)</strong></li>
+                                        <li><strong>Schedule matches</strong> (assign to season/tournament)</li>
+                                        <li><strong>Mark attendance</strong> for matches</li>
+                                        <li><strong>Review and approve announcements</strong></li>
+                                    </ul>
+                                    <div class="text-muted" style="font-size:0.95em;">Tip: Complete these steps to ensure the system is ready for use. You can dismiss this checklist at any time.</div>
+                                </div>
                 <a href="/" class="navbar-brand"><span class="icon">🏐</span> Tornadoes</a>
                 <ul class="navbar-links">
                     <li><a href="/dashboard.html">Dashboard</a></li>
@@ -73,14 +89,17 @@
                             <div class="form-group" style="margin-bottom:0; flex:1; min-width:150px;">
                                 <label class="form-label">Name</label>
                                 <input class="form-input" id="sName" required placeholder="e.g. 2026 Season">
+                                <div class="invalid-feedback" id="sNameError"></div>
                             </div>
                             <div class="form-group" style="margin-bottom:0;">
                                 <label class="form-label">Start</label>
                                 <input class="form-input" type="date" id="sStart" required>
+                                <div class="invalid-feedback" id="sStartError"></div>
                             </div>
                             <div class="form-group" style="margin-bottom:0;">
                                 <label class="form-label">End</label>
                                 <input class="form-input" type="date" id="sEnd" required>
+                                <div class="invalid-feedback" id="sEndError"></div>
                             </div>
                             <button class="btn btn-primary btn-sm" type="submit">Create</button>
                         </div>
@@ -102,15 +121,126 @@
                             <div class="form-group" style="margin-bottom:0; flex:1; min-width:150px;">
                                 <label class="form-label">Name</label>
                                 <input class="form-input" id="tName" required placeholder="e.g. County League">
+                                <div class="invalid-feedback" id="tNameError"></div>
                             </div>
                             <div class="form-group" style="margin-bottom:0;">
                                 <label class="form-label">Season</label>
                                 <select class="form-select" id="tSeason" required></select>
+                                <div class="invalid-feedback" id="tSeasonError"></div>
                             </div>
                             <button class="btn btn-primary btn-sm" type="submit">Create</button>
                         </div>
                     </form>
                     <div id="tournamentsList"></div>
+                                </div>
+
+                                <!-- Match Management -->
+                                                <!-- Attendance Management -->
+                                                <div class="card" style="margin-bottom:1.5rem;">
+                                                    <div class="section-header" style="margin-bottom:1rem;">
+                                                        <h3>📝 Attendance</h3>
+                                                    </div>
+                                                    <div style="margin-bottom:1rem;">
+                                                        <label class="form-label">Select Match</label>
+                                                        <select class="form-select" id="attendanceMatchSelect" onchange="loadAttendanceForMatch()"></select>
+                                                    </div>
+                                                    <div class="table-wrapper">
+                                                        <table>
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Player</th>
+                                                                    <th>Present?</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="attendanceBody"></tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div class="flex gap-1" style="margin-top:1rem;">
+                                                        <button class="btn btn-primary" onclick="saveAttendance()">Save Attendance</button>
+                                                    </div>
+                                                </div>
+                                <div class="card" style="margin-bottom:1.5rem;">
+                                    <div class="section-header" style="margin-bottom:1rem;">
+                                        <h3>📅 Matches</h3>
+                                        <button class="btn btn-primary btn-sm" onclick="showMatchForm()">+ New Match</button>
+                                    </div>
+                                    <div class="table-wrapper">
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Opponent</th>
+                                                    <th>Venue</th>
+                                                    <th>Season</th>
+                                                    <th>Tournament</th>
+                                                    <th>Result</th>
+                                                    <th>Score</th>
+                                                    <th>Link</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="adminMatchesBody"></tbody>
+                                        </table>
+                                    </div>
+                                    <p id="noAdminMatches" class="text-muted text-center mt-2 hidden">No matches found.</p>
+                                </div>
+
+                                <!-- Add/Edit Match Modal -->
+                                <div class="modal-overlay" id="adminMatchModal">
+                                    <div class="modal">
+                                        <h3 id="adminMatchModalTitle">Add Match</h3>
+                                        <form onsubmit="submitAdminMatch(event)">
+                                            <input type="hidden" id="adminMatchId">
+                                            <div class="form-group">
+                                                <label class="form-label">Date</label>
+                                                <input class="form-input" type="date" id="adminMDate" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Opponent</label>
+                                                <input class="form-input" id="adminMOpponent" required>
+                                                <div class="invalid-feedback" id="adminMOpponentError"></div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Venue</label>
+                                                <input class="form-input" id="adminMVenue" required>
+                                                <div class="invalid-feedback" id="adminMVenueError"></div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Season</label>
+                                                <select class="form-select" id="adminMSeason" required></select>
+                                                <div class="invalid-feedback" id="adminMDateError"></div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Tournament (optional)</label>
+                                                <select class="form-select" id="adminMTournament">
+                                                    <option value="">None</option>
+                                                </select>
+                                                <div class="invalid-feedback" id="adminMSeasonError"></div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Match Link (optional)</label>
+                                                <input class="form-input" id="adminMLink" placeholder="https://...">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Result (optional)</label>
+                                                <select class="form-select" id="adminMResult">
+                                                    <option value="">—</option>
+                                                    <option value="win">Win</option>
+                                                    <option value="loss">Loss</option>
+                                                    <option value="draw">Draw</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Score (optional)</label>
+                                                <input class="form-input" id="adminMScore" placeholder="e.g. 28-24">
+                                            </div>
+                                            <div class="flex gap-1">
+                                                <button type="submit" class="btn btn-primary">Save</button>
+                                                <button type="button" class="btn btn-outline" onclick="closeModal('adminMatchModal')">Cancel</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                 </div>
             </div>
         </div>
@@ -145,7 +275,10 @@
                     <strong>${esc(a.title)}</strong>
                     <span class="text-muted" style="font-size:0.8rem;"> — ${esc(a.content).substring(0, 80)}...</span>
                 </div>
-                <button class="btn btn-success btn-sm" onclick="approveAnn(${a.id})">✓ Approve</button>
+                <div>
+                    <button class="btn btn-success btn-sm" onclick="approveAnn(${a.id})">✓ Approve</button>
+                    <button class="btn btn-danger btn-sm" style="margin-left:0.5rem;" onclick="rejectAnn(${a.id})">✗ Reject</button>
+                </div>
             </div>
         `).join('');
             } catch { }
@@ -163,6 +296,19 @@
             } catch { showToast('Network error', 'error'); }
         }
 
+        async function rejectAnn(id) {
+            if (!confirm('Are you sure you want to reject this announcement? This cannot be undone.')) return;
+            try {
+                const res = await fetch('/api/announcements/reject', {
+                    method: 'POST', headers: authHeaders(),
+                    body: JSON.stringify({ id })
+                });
+                const data = await res.json();
+                if (data.success) { showToast('Announcement rejected'); loadPending(); }
+                else showToast(data.message, 'error');
+            } catch { showToast('Network error', 'error'); }
+        }
+
         // ─── Users ──────────────────────────────────────────────────
         async function loadUsers() {
             try {
@@ -175,11 +321,13 @@
                 <td><span class="badge badge-role">${u.role}</span></td>
                 <td>
                     ${role === 'admin' ? `
-                        <select class="form-select" style="width:auto; display:inline-block;" onchange="changeRole(${u.id}, this.value)">
+                        <button class="btn btn-outline btn-sm" onclick="showEditUser(${u.id})">Edit</button>
+                        <select class="form-select" style="width:auto; display:inline-block; margin-left:0.5rem;" onchange="changeRole(${u.id}, this.value)">
                             <option value="player" ${u.role === 'player' ? 'selected' : ''}>Player</option>
                             <option value="coach" ${u.role === 'coach' ? 'selected' : ''}>Coach</option>
                             <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
                         </select>
+                        <button class="btn btn-danger btn-sm" style="margin-left:0.5rem;" onclick="deleteUser(${u.id})">Delete</button>
                     ` : '—'}
                 </td>
             </tr>
@@ -205,9 +353,15 @@
                 const res = await fetch('/api/seasons');
                 const seasons = await res.json();
                 document.getElementById('seasonsList').innerHTML = seasons.map(s => `
-            <div style="display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid var(--border);">
-                <strong>${esc(s.name)}</strong>
-                <span class="text-muted">${s.start_date} → ${s.end_date}</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0; border-bottom:1px solid var(--border);">
+                <div>
+                    <strong>${esc(s.name)}</strong>
+                    <span class="text-muted">${s.start_date} → ${s.end_date}</span>
+                </div>
+                <div>
+                    <button class="btn btn-outline btn-sm" onclick="showEditSeason(${s.id})">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteSeason(${s.id})">Delete</button>
+                </div>
             </div>
         `).join('') || '<p class="text-muted">No seasons yet.</p>';
 
@@ -218,6 +372,17 @@
 
         async function createSeason(e) {
             e.preventDefault();
+            let valid = true;
+            if (!document.getElementById('sName').value) {
+                document.getElementById('sNameError').textContent = 'Name required'; valid = false;
+            } else { document.getElementById('sNameError').textContent = ''; }
+            if (!document.getElementById('sStart').value) {
+                document.getElementById('sStartError').textContent = 'Start date required'; valid = false;
+            } else { document.getElementById('sStartError').textContent = ''; }
+            if (!document.getElementById('sEnd').value) {
+                document.getElementById('sEndError').textContent = 'End date required'; valid = false;
+            } else { document.getElementById('sEndError').textContent = ''; }
+            if (!valid) return;
             try {
                 const res = await fetch('/api/seasons', {
                     method: 'POST', headers: authHeaders(),
@@ -239,8 +404,12 @@
                 const res = await fetch('/api/tournaments');
                 const data = await res.json();
                 document.getElementById('tournamentsList').innerHTML = data.map(t => `
-            <div style="padding:0.5rem 0; border-bottom:1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0; border-bottom:1px solid var(--border);">
                 <strong>${esc(t.name)}</strong>
+                <div>
+                    <button class="btn btn-outline btn-sm" onclick="showEditTournament(${t.id})">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteTournament(${t.id})">Delete</button>
+                </div>
             </div>
         `).join('') || '<p class="text-muted">No tournaments yet.</p>';
             } catch { }
@@ -248,6 +417,14 @@
 
         async function createTournament(e) {
             e.preventDefault();
+            let valid = true;
+            if (!document.getElementById('tName').value) {
+                document.getElementById('tNameError').textContent = 'Name required'; valid = false;
+            } else { document.getElementById('tNameError').textContent = ''; }
+            if (!document.getElementById('tSeason').value) {
+                document.getElementById('tSeasonError').textContent = 'Season required'; valid = false;
+            } else { document.getElementById('tSeasonError').textContent = ''; }
+            if (!valid) return;
             try {
                 const res = await fetch('/api/tournaments', {
                     method: 'POST', headers: authHeaders(),
@@ -263,10 +440,422 @@
         }
 
         // Load everything
+                                                // ─── Edit User Modal ─────────────────────────────
+                                                function showEditUser(id) {
+                                                    fetch('/api/users', { headers: authHeaders() }).then(r => r.json()).then(users => {
+                                                        const u = users.find(x => x.id === id);
+                                                        document.getElementById('editUserId').value = u.id;
+                                                        document.getElementById('editUName').value = u.name;
+                                                        document.getElementById('editUEmail').value = u.email;
+                                                        document.getElementById('editURole').value = u.role;
+                                                        document.getElementById('editUserModal').classList.add('active');
+                                                    });
+                                                }
+                                                async function submitEditUser(e) {
+                                                    e.preventDefault();
+                                                    const id = document.getElementById('editUserId').value;
+                                                    const payload = {
+                                                        name: document.getElementById('editUName').value,
+                                                        email: document.getElementById('editUEmail').value,
+                                                        role: document.getElementById('editURole').value
+                                                    };
+                                                    try {
+                                                        const res = await fetch(`/api/users/${id}`, {
+                                                            method: 'PATCH', headers: authHeaders(),
+                                                            body: JSON.stringify(payload)
+                                                        });
+                                                        const data = await res.json();
+                                                        if (data.success) showToast('User updated');
+                                                        else showToast(data.message, 'error');
+                                                        closeModal('editUserModal');
+                                                        loadUsers();
+                                                    } catch { showToast('Network error', 'error'); }
+                                                }
+                                                        <!-- Edit User Modal -->
+                                                        <div class="modal-overlay" id="editUserModal">
+                                                            <div class="modal">
+                                                                <h3>Edit User</h3>
+                                                                <form onsubmit="submitEditUser(event)">
+                                                                    <input type="hidden" id="editUserId">
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Name</label>
+                                                                        <input class="form-input" id="editUName" required>
+                                                                        <div class="invalid-feedback" id="editUNameError"></div>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Email</label>
+                                                                        <input class="form-input" id="editUEmail" required type="email">
+                                                                        <div class="invalid-feedback" id="editUEmailError"></div>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label class="form-label">Role</label>
+                                                                        <select class="form-select" id="editURole" required>
+                                                                            <option value="player">Player</option>
+                                                                            <option value="coach">Coach</option>
+                                                                            <option value="admin">Admin</option>
+                                                                        </select>
+                                                                        <div class="invalid-feedback" id="editURoleError"></div>
+                                                                    </div>
+                                                                    <div class="flex gap-1">
+                                                                        <button type="submit" class="btn btn-primary">Save</button>
+                                                                        <button type="button" class="btn btn-outline" onclick="closeModal('editUserModal')">Cancel</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                        async function deleteUser(id) {
+                                            if (!confirm('⚠️ This action cannot be undone. Delete this user?')) return;
+                                            try {
+                                                const res = await fetch(`/api/users/${id}`, {
+                                                    method: 'DELETE', headers: authHeaders()
+                                                });
+                                                const data = await res.json();
+                                                if (data.success) {
+                                                    showToast('User deleted');
+                                                    loadUsers();
+                                                } else {
+                                                    showToast(data.message, 'error');
+                                                }
+                                            } catch { showToast('Network error', 'error'); }
+                                        }
+                                // ─── Attendance Management ─────────────────────────────
+                                let attendanceUsers = [];
+                                let attendanceRecords = [];
+                                let attendanceMatchId = null;
+                                async function loadAttendanceMatches() {
+                                    try {
+                                        const res = await fetch('/api/matches');
+                                        const matches = await res.json();
+                                        const sel = document.getElementById('attendanceMatchSelect');
+                                        sel.innerHTML = matches.map(m => `<option value="${m.id}">${m.date} — ${esc(m.opponent)}</option>`).join('');
+                                        if (matches.length) {
+                                            attendanceMatchId = matches[0].id;
+                                            loadAttendanceForMatch();
+                                        }
+                                    } catch { }
+                                }
+
+                                async function loadAttendanceForMatch() {
+                                    attendanceMatchId = parseInt(document.getElementById('attendanceMatchSelect').value);
+                                    // Load users
+                                    const usersRes = await fetch('/api/users', { headers: authHeaders() });
+                                    attendanceUsers = await usersRes.json();
+                                    // Load attendance records
+                                    const attRes = await fetch('/api/attendance/list', { headers: authHeaders() });
+                                    const allAttendance = await attRes.json();
+                                    attendanceRecords = attendanceUsers.map(u => {
+                                        const rec = allAttendance.find(a => a.match_id === attendanceMatchId && a.user_id === u.id);
+                                        return { user_id: u.id, name: u.name, present: rec ? rec.present : false };
+                                    });
+                                    renderAttendanceTable();
+                                }
+
+                                function renderAttendanceTable() {
+                                    document.getElementById('attendanceBody').innerHTML = attendanceRecords.map((r, i) => `
+                                        <tr>
+                                            <td>${esc(r.name)}</td>
+                                            <td><input type="checkbox" ${r.present ? 'checked' : ''} onchange="attendanceRecords[${i}].present = this.checked"></td>
+                                        </tr>
+                                    `).join('');
+                                }
+
+                                async function saveAttendance() {
+                                    try {
+                                        const res = await fetch('/api/attendance/bulk', {
+                                            method: 'POST', headers: authHeaders(),
+                                            body: JSON.stringify({ match_id: attendanceMatchId, records: attendanceRecords.map(r => ({ user_id: r.user_id, present: r.present })) })
+                                        });
+                                        const data = await res.json();
+                                        if (data.success) showToast('Attendance saved');
+                                        else showToast(data.message, 'error');
+                                    } catch { showToast('Network error', 'error'); }
+                                }
+
+                                // Load attendance matches on page load
+                                loadAttendanceMatches();
+                        // ─── Edit Season Modal ─────────────────────────────
+                        function showEditSeason(id) {
+                            fetch('/api/seasons').then(r => r.json()).then(seasons => {
+                                const s = seasons.find(x => x.id === id);
+                                document.getElementById('editSeasonId').value = s.id;
+                                document.getElementById('editSName').value = s.name;
+                                document.getElementById('editSStart').value = s.start_date;
+                                document.getElementById('editSEnd').value = s.end_date;
+                                document.getElementById('editSeasonModal').classList.add('active');
+                            });
+                        }
+                        async function submitEditSeason(e) {
+                            e.preventDefault();
+                            const id = document.getElementById('editSeasonId').value;
+                            const payload = {
+                                name: document.getElementById('editSName').value,
+                                start_date: document.getElementById('editSStart').value,
+                                end_date: document.getElementById('editSEnd').value
+                            };
+                            try {
+                                const res = await fetch(`/api/seasons/${id}`, {
+                                    method: 'PATCH', headers: authHeaders(),
+                                    body: JSON.stringify(payload)
+                                });
+                                const data = await res.json();
+                                if (data.success) showToast('Season updated');
+                                else showToast(data.message, 'error');
+                                closeModal('editSeasonModal');
+                                loadSeasons();
+                            } catch { showToast('Network error', 'error'); }
+                        }
+
+                        // ─── Edit Tournament Modal ──────────────────────────
+                        function showEditTournament(id) {
+                            Promise.all([
+                                fetch('/api/tournaments').then(r => r.json()),
+                                fetch('/api/seasons').then(r => r.json())
+                            ]).then(([tournaments, seasons]) => {
+                                const t = tournaments.find(x => x.id === id);
+                                document.getElementById('editTournamentId').value = t.id;
+                                document.getElementById('editTName').value = t.name;
+                                document.getElementById('editTSeason').innerHTML = seasons.map(s => `<option value="${s.id}"${s.id===t.season_id?' selected':''}>${esc(s.name)}</option>`).join('');
+                                document.getElementById('editTournamentModal').classList.add('active');
+                            });
+                        }
+                        async function submitEditTournament(e) {
+                            e.preventDefault();
+                            const id = document.getElementById('editTournamentId').value;
+                            const payload = {
+                                name: document.getElementById('editTName').value,
+                                season_id: parseInt(document.getElementById('editTSeason').value)
+                            };
+                            try {
+                                const res = await fetch(`/api/tournaments/${id}`, {
+                                    method: 'PATCH', headers: authHeaders(),
+                                    body: JSON.stringify(payload)
+                                });
+                                const data = await res.json();
+                                if (data.success) showToast('Tournament updated');
+                                else showToast(data.message, 'error');
+                                closeModal('editTournamentModal');
+                                loadTournaments();
+                            } catch { showToast('Network error', 'error'); }
+                        }
+                                <!-- Edit Season Modal -->
+                                <div class="modal-overlay" id="editSeasonModal">
+                                    <div class="modal">
+                                        <h3>Edit Season</h3>
+                                        <form onsubmit="submitEditSeason(event)">
+                                            <input type="hidden" id="editSeasonId">
+                                            <div class="form-group">
+                                                <label class="form-label">Name</label>
+                                                <input class="form-input" id="editSName" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Start</label>
+                                                <input class="form-input" type="date" id="editSStart" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">End</label>
+                                                <input class="form-input" type="date" id="editSEnd" required>
+                                            </div>
+                                            <div class="flex gap-1">
+                                                <button type="submit" class="btn btn-primary">Save</button>
+                                                <button type="button" class="btn btn-outline" onclick="closeModal('editSeasonModal')">Cancel</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- Edit Tournament Modal -->
+                                <div class="modal-overlay" id="editTournamentModal">
+                                    <div class="modal">
+                                        <h3>Edit Tournament</h3>
+                                        <form onsubmit="submitEditTournament(event)">
+                                            <input type="hidden" id="editTournamentId">
+                                            <div class="form-group">
+                                                <label class="form-label">Name</label>
+                                                <input class="form-input" id="editTName" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Season</label>
+                                                <select class="form-select" id="editTSeason" required></select>
+                                            </div>
+                                            <div class="flex gap-1">
+                                                <button type="submit" class="btn btn-primary">Save</button>
+                                                <button type="button" class="btn btn-outline" onclick="closeModal('editTournamentModal')">Cancel</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                async function deleteSeason(id) {
+                    if (!confirm('⚠️ This action cannot be undone. Delete this season?')) return;
+                    try {
+                        const res = await fetch(`/api/seasons/${id}`, {
+                            method: 'DELETE', headers: authHeaders()
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            showToast('Season deleted');
+                            loadSeasons();
+                        } else {
+                            showToast(data.message, 'error');
+                        }
+                    } catch { showToast('Network error', 'error'); }
+                }
+
+                async function deleteTournament(id) {
+                    if (!confirm('⚠️ This action cannot be undone. Delete this tournament?')) return;
+                    try {
+                        const res = await fetch(`/api/tournaments/${id}`, {
+                            method: 'DELETE', headers: authHeaders()
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            showToast('Tournament deleted');
+                            loadTournaments();
+                        } else {
+                            showToast(data.message, 'error');
+                        }
+                    } catch { showToast('Network error', 'error'); }
+                }
         loadPending();
         loadUsers();
         loadSeasons();
         loadTournaments();
+        loadAdminMatches();
+
+        // ─── Match Management (Admin) ─────────────────────────────
+        let adminMatches = [];
+        function showMatchForm(editId = null) {
+            loadSeasonsForAdminMatch();
+            document.getElementById('adminMatchModalTitle').textContent = editId ? 'Edit Match' : 'Add Match';
+            document.getElementById('adminMatchId').value = editId || '';
+            if (editId) {
+                const m = adminMatches.find(x => x.id === editId);
+                document.getElementById('adminMDate').value = m.date;
+                document.getElementById('adminMOpponent').value = m.opponent;
+                document.getElementById('adminMVenue').value = m.venue;
+                document.getElementById('adminMSeason').value = m.season_id;
+                document.getElementById('adminMTournament').value = m.tournament_id || '';
+                document.getElementById('adminMLink').value = m.match_link || '';
+                document.getElementById('adminMResult').value = m.result || '';
+                document.getElementById('adminMScore').value = m.score || '';
+            } else {
+                document.getElementById('adminMatchId').value = '';
+                document.getElementById('adminMDate').value = '';
+                document.getElementById('adminMOpponent').value = '';
+                document.getElementById('adminMVenue').value = '';
+                document.getElementById('adminMSeason').value = '';
+                document.getElementById('adminMTournament').value = '';
+                document.getElementById('adminMLink').value = '';
+                document.getElementById('adminMResult').value = '';
+                document.getElementById('adminMScore').value = '';
+            }
+            document.getElementById('adminMatchModal').classList.add('active');
+        }
+
+        async function loadAdminMatches() {
+            try {
+                const res = await fetch('/api/matches');
+                adminMatches = await res.json();
+                renderAdminMatches(adminMatches);
+            } catch { }
+        }
+
+        function renderAdminMatches(list) {
+            const body = document.getElementById('adminMatchesBody');
+            const noMsg = document.getElementById('noAdminMatches');
+            if (!list.length) { body.innerHTML = ''; noMsg.classList.remove('hidden'); return; }
+            noMsg.classList.add('hidden');
+            body.innerHTML = list.map(m => `
+                <tr>
+                    <td>${m.date}</td>
+                    <td><strong>${esc(m.opponent)}</strong></td>
+                    <td>${esc(m.venue)}</td>
+                    <td>${m.season_id}</td>
+                    <td>${m.tournament_id || '—'}</td>
+                    <td>${m.result ? `<span class="badge badge-${m.result}">${m.result.toUpperCase()}</span>` : '<span class="text-muted">—</span>'}</td>
+                    <td>${m.score || '—'}</td>
+                    <td>${m.match_link ? `<a href="${esc(m.match_link)}" target="_blank">🔗</a>` : '—'}</td>
+                    <td>
+                        <button class="btn btn-outline btn-sm" onclick="showMatchForm(${m.id})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteAdminMatch(${m.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function submitAdminMatch(e) {
+            e.preventDefault();
+            let valid = true;
+            if (!document.getElementById('adminMOpponent').value) {
+                document.getElementById('adminMOpponentError').textContent = 'Opponent required'; valid = false;
+            } else { document.getElementById('adminMOpponentError').textContent = ''; }
+            if (!document.getElementById('adminMVenue').value) {
+                document.getElementById('adminMVenueError').textContent = 'Venue required'; valid = false;
+            } else { document.getElementById('adminMVenueError').textContent = ''; }
+            if (!document.getElementById('adminMSeason').value) {
+                document.getElementById('adminMDateError').textContent = 'Season required'; valid = false;
+            } else { document.getElementById('adminMDateError').textContent = ''; }
+            if (!valid) return;
+            const id = document.getElementById('adminMatchId').value;
+            const payload = {
+                date: document.getElementById('adminMDate').value,
+                opponent: document.getElementById('adminMOpponent').value,
+                venue: document.getElementById('adminMVenue').value,
+                season_id: parseInt(document.getElementById('adminMSeason').value),
+                tournament_id: document.getElementById('adminMTournament').value ? parseInt(document.getElementById('adminMTournament').value) : null,
+                match_link: document.getElementById('adminMLink').value || null,
+                result: document.getElementById('adminMResult').value || null,
+                score: document.getElementById('adminMScore').value || null
+            };
+            try {
+                let res, data;
+                if (id) {
+                    res = await fetch('/api/matches/update', {
+                        method: 'POST', headers: authHeaders(),
+                        body: JSON.stringify({ id: parseInt(id), ...payload })
+                    });
+                    data = await res.json();
+                    if (data.success) showToast('Match updated');
+                    else showToast(data.message, 'error');
+                } else {
+                    res = await fetch('/api/matches', {
+                        method: 'POST', headers: authHeaders(),
+                        body: JSON.stringify(payload)
+                    });
+                    data = await res.json();
+                    if (data.success) showToast('Match created');
+                    else showToast(data.message, 'error');
+                }
+                closeModal('adminMatchModal');
+                loadAdminMatches();
+            } catch { showToast('Network error', 'error'); }
+        }
+
+
+        async function deleteAdminMatch(id) {
+            if (!confirm('⚠️ This action cannot be undone. Delete this match?')) return;
+            try {
+                const res = await fetch(`/api/matches/${id}`, {
+                    method: 'DELETE', headers: authHeaders()
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Match deleted');
+                    loadAdminMatches();
+                } else {
+                    showToast(data.message, 'error');
+                }
+            } catch { showToast('Network error', 'error'); }
+        }
+
+        async function loadSeasonsForAdminMatch() {
+            try {
+                const [sRes, tRes] = await Promise.all([fetch('/api/seasons'), fetch('/api/tournaments')]);
+                const seasons = await sRes.json();
+                const tournaments = await tRes.json();
+                document.getElementById('adminMSeason').innerHTML = seasons.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('') || '<option value="">No seasons</option>';
+                document.getElementById('adminMTournament').innerHTML = '<option value="">None</option>' + tournaments.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+            } catch { }
+        }
     </script>
 </body>
 

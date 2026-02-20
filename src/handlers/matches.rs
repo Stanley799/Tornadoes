@@ -1,3 +1,23 @@
+/// DELETE /api/matches/:id — Coach/Admin deletes a match
+use axum::extract::Path;
+pub async fn delete_match(
+    State(pool): State<PgPool>,
+    Extension(claims): Extension<Claims>,
+    Path(id): Path<i64>,
+) -> Result<impl IntoResponse, AppError> {
+    require_coach_or_admin(&claims)?;
+    let result = sqlx::query("DELETE FROM matches WHERE id = $1")
+        .bind(id)
+        .execute(&pool)
+        .await?;
+    if result.rows_affected() == 0 {
+        return Err(AppError::NotFound("Match not found".into()));
+    }
+    Ok(Json(ApiResponse {
+        success: true,
+        message: "Match deleted.".into(),
+    }))
+}
 use axum::{extract::State, response::IntoResponse, Extension, Json};
 use sqlx::PgPool;
 

@@ -88,17 +88,7 @@ pub async fn auth_middleware(
     Ok(next.run(req).await)
 }
 
-/// Helper to check if claims have a required role.
-pub fn require_role(claims: &Claims, required: &str) -> Result<(), AppError> {
-    if claims.role == required || claims.role == "admin" {
-        Ok(())
-    } else {
-        Err(AppError::Unauthorized(format!(
-            "Role '{}' required, you have '{}'",
-            required, claims.role
-        )))
-    }
-}
+// (require_role is not used and has been removed to resolve dead code warning)
 
 /// Check if user is coach or admin.
 pub fn require_coach_or_admin(claims: &Claims) -> Result<(), AppError> {

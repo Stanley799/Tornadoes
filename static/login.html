@@ -22,8 +22,8 @@
         <div class="page-content">
             <div class="container">
                 <div class="card form-card">
-                    <h2>Welcome Back</h2>
-                    <p class="form-subtitle">Sign in to your Tornadoes account</p>
+                    <h2>Log in</h2>
+                    <p class="form-subtitle">Log in to your Tornadoes account</p>
                     <div id="errorMsg" class="alert alert-warning hidden"></div>
                     <form id="loginForm" onsubmit="handleLogin(event)">
                         <div class="form-group">
@@ -34,12 +34,25 @@
                             <label class="form-label" for="password">Password</label>
                             <input class="form-input" type="password" id="password" required placeholder="••••••••">
                         </div>
+                        <div class="form-group">
+                            <label class="form-label" for="role">Role</label>
+                            <select class="form-input" id="role" required>
+                                <option value="user">User</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
                         <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;"
-                            id="submitBtn">Sign In</button>
+                            id="submitBtn">Log in</button>
                     </form>
                     <p class="text-center mt-2 text-muted" style="font-size:0.85rem;">
-                        Don't have an account? <a href="/register.html">Register here</a>
+                        Don't have an account? <a href="/register.html">Join Team</a>
                     </p>
+                    <hr style="margin:2rem 0;">
+                    <div class="admin-login-section" style="text-align:center;">
+                        <h3 style="margin-bottom:0.5rem;">Log in as Admin</h3>
+                        <p style="font-size:0.95rem; color:var(--text-secondary); margin-bottom:1rem;">Access the admin console for team management and approvals.</p>
+                        <a href="/admin.html" class="btn btn-outline" style="width:60%;">Go to Admin Console</a>
+                    </div>
                 </div>
             </div>
         </div>

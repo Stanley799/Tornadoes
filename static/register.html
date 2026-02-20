@@ -40,11 +40,16 @@
                             <input class="form-input" type="password" id="password" required minlength="6"
                                 placeholder="Min. 6 characters">
                         </div>
+                        <div class="form-group">
+                            <label class="form-label" for="passwordConfirm">Confirm Password</label>
+                            <input class="form-input" type="password" id="passwordConfirm" required minlength="6"
+                                placeholder="Re-enter password">
+                        </div>
                         <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;"
-                            id="submitBtn">Create Account</button>
+                            id="submitBtn">Join Team</button>
                     </form>
                     <p class="text-center mt-2 text-muted" style="font-size:0.85rem;">
-                        Already have an account? <a href="/login.html">Sign in</a>
+                        Already have an account? <a href="/login.html">Log in</a>
                     </p>
                 </div>
             </div>
@@ -66,6 +71,16 @@
             errDiv.classList.add('hidden');
             successDiv.classList.add('hidden');
 
+            // Password confirmation check
+            const password = document.getElementById('password').value;
+            const passwordConfirm = document.getElementById('passwordConfirm').value;
+            if (password !== passwordConfirm) {
+                errDiv.innerHTML = `<span>⚠️</span><span>Passwords do not match.</span>`;
+                errDiv.classList.remove('hidden');
+                btn.textContent = 'Join Team';
+                btn.disabled = false;
+                return;
+            }
             try {
                 const res = await fetch('/api/register', {
                     method: 'POST',
@@ -73,7 +88,7 @@
                     body: JSON.stringify({
                         name: document.getElementById('name').value,
                         email: document.getElementById('email').value,
-                        password: document.getElementById('password').value
+                        password
                     })
                 });
                 const data = await res.json();
@@ -91,7 +106,7 @@
                 errDiv.innerHTML = `<span>⚠️</span><span>Network error. Please try again.</span>`;
                 errDiv.classList.remove('hidden');
             }
-            btn.textContent = 'Create Account';
+            btn.textContent = 'Join Team';
             btn.disabled = false;
         }
     </script>
