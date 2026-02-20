@@ -11,6 +11,7 @@ use serde_json::json;
 pub enum AppError {
     NotFound(String),
     Unauthorized(String),
+    Forbidden(String),
     BadRequest(String),
     Conflict(String),
     Database(sqlx::Error),
@@ -22,6 +23,7 @@ impl std::fmt::Display for AppError {
         match self {
             AppError::NotFound(msg) => write!(f, "Not found: {}", msg),
             AppError::Unauthorized(msg) => write!(f, "Unauthorized: {}", msg),
+            AppError::Forbidden(msg) => write!(f, "Forbidden: {}", msg),
             AppError::BadRequest(msg) => write!(f, "Bad request: {}", msg),
             AppError::Conflict(msg) => write!(f, "Conflict: {}", msg),
             AppError::Database(e) => write!(f, "Database error: {}", e),
@@ -35,6 +37,7 @@ impl IntoResponse for AppError {
         let (status, message) = match &self {
             AppError::NotFound(msg) => (StatusCode::NOT_FOUND, msg.clone()),
             AppError::Unauthorized(msg) => (StatusCode::UNAUTHORIZED, msg.clone()),
+            AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, msg.clone()),
             AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg.clone()),
             AppError::Conflict(msg) => (StatusCode::CONFLICT, msg.clone()),
             AppError::Database(e) => {

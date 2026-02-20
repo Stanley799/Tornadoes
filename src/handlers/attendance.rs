@@ -13,14 +13,15 @@ pub async fn mark_attendance(
 ) -> Result<impl IntoResponse, AppError> {
     require_coach_or_admin(&claims)?;
 
-    // Upsert: insert or update attendance
+    // Upsert: insert or update attendance, including date
     sqlx::query(
-        "INSERT INTO attendance (user_id, match_id, present) VALUES ($1, $2, $3) \
-         ON CONFLICT (user_id, match_id) DO UPDATE SET present = EXCLUDED.present"
+        "INSERT INTO attendance (user_id, match_id, present, date) VALUES ($1, $2, $3, $4) \
+         ON CONFLICT (user_id, match_id) DO UPDATE SET present = EXCLUDED.present, date = EXCLUDED.date"
     )
     .bind(payload.user_id)
     .bind(payload.match_id)
     .bind(payload.present)
+    .bind(payload.date.clone())
     .execute(&pool)
     .await?;
 
@@ -40,12 +41,13 @@ pub async fn mark_attendance_bulk(
 
     for record in &payload.records {
         sqlx::query(
-            "INSERT INTO attendance (user_id, match_id, present) VALUES ($1, $2, $3) \
-             ON CONFLICT (user_id, match_id) DO UPDATE SET present = EXCLUDED.present"
+            "INSERT INTO attendance (user_id, match_id, present, date) VALUES ($1, $2, $3, $4) \
+             ON CONFLICT (user_id, match_id) DO UPDATE SET present = EXCLUDED.present, date = EXCLUDED.date"
         )
         .bind(record.user_id)
         .bind(payload.match_id)
         .bind(record.present)
+        .bind(record.date.clone().or_else(|| payload.date.clone()))
         .execute(&pool)
         .await?;
     }
@@ -63,16 +65,16 @@ pub async fn list_attendance(
     Extension(claims): Extension<Claims>,
 ) -> Result<impl IntoResponse, AppError> {
     let rows = if claims.role == "coach" || claims.role == "admin" {
-        sqlx::query_as::<_, (i64, i64, Option<String>, i64, bool)>(
-            "SELECT a.id, a.user_id, u.name, a.match_id, a.present \
+        sqlx::query_as::<_, (i64, i64, Option<String>, i64, bool, Option<String>)>(
+            "SELECT a.id, a.user_id, u.name, a.match_id, a.present, a.date \
              FROM attendance a LEFT JOIN users u ON a.user_id = u.id \
              ORDER BY a.match_id DESC",
         )
         .fetch_all(&pool)
         .await?
     } else {
-        sqlx::query_as::<_, (i64, i64, Option<String>, i64, bool)>(
-            "SELECT a.id, a.user_id, u.name, a.match_id, a.present \
+        sqlx::query_as::<_, (i64, i64, Option<String>, i64, bool, Option<String>)>(
+            "SELECT a.id, a.user_id, u.name, a.match_id, a.present, a.date \
              FROM attendance a LEFT JOIN users u ON a.user_id = u.id \
              WHERE a.user_id = ? ORDER BY a.match_id DESC",
         )
@@ -83,12 +85,13 @@ pub async fn list_attendance(
 
     let attendance: Vec<AttendanceResponse> = rows
         .into_iter()
-        .map(|(id, user_id, user_name, match_id, present)| AttendanceResponse {
+        .map(|(id, user_id, user_name, match_id, present, date)| AttendanceResponse {
             id,
             user_id,
             user_name,
             match_id,
             present,
+            date,
         })
         .collect();
 

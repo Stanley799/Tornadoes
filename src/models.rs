@@ -119,18 +119,21 @@ pub struct AttendanceMarkRequest {
     pub user_id: i64,
     pub match_id: i64,
     pub present: bool,
+    pub date: Option<String>,
 }
 
 #[derive(Deserialize)]
 pub struct AttendanceBulkRequest {
     pub match_id: i64,
     pub records: Vec<AttendanceRecord>,
+    pub date: Option<String>,
 }
 
 #[derive(Deserialize)]
 pub struct AttendanceRecord {
     pub user_id: i64,
     pub present: bool,
+    pub date: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -140,6 +143,7 @@ pub struct AttendanceResponse {
     pub user_name: Option<String>,
     pub match_id: i64,
     pub present: bool,
+    pub date: Option<String>,
 }
 
 // ─── Seasons & Tournaments ──────────────────────────────────────────
