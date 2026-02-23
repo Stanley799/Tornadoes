@@ -17,6 +17,7 @@ pub struct TournamentUpdateRequest {
     pub season_id: i64,
 }
 use serde::{Deserialize, Serialize};
+use chrono::NaiveDate;
 
 // ─── Generic API Response ────────────────────────────────────────────
 
@@ -32,7 +33,17 @@ pub struct ApiResponse {
 pub struct RegisterRequest {
     pub email: String,
     pub password: String,
-    pub name: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub role: String, // "coach" or "player"
+    pub player_details: Option<PlayerRegisterDetails>, // Only for player
+}
+
+#[derive(Deserialize)]
+pub struct PlayerRegisterDetails {
+    pub date_of_birth: NaiveDate,
+    pub position: String,
+    pub jersey_number: i32,
 }
 
 #[derive(Deserialize)]

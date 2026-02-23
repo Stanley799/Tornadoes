@@ -6,6 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login — Tornadoes Handball</title>
     <link rel="stylesheet" href="/style.css">
+    <style>
+        .login-radio-group {
+            display: flex;
+            gap: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        .login-radio-label {
+            font-weight: 500;
+            color: #374151;
+            font-size: 1.05rem;
+        }
+    </style>
 </head>
 
 <body>
@@ -34,13 +46,6 @@
                             <label class="form-label" for="password">Password</label>
                             <input class="form-input" type="password" id="password" required placeholder="••••••••">
                         </div>
-                        <div class="form-group">
-                            <label class="form-label" for="role">Role</label>
-                            <select class="form-input" id="role" required>
-                                <option value="user">User</option>
-                                <option value="admin">Admin</option>
-                            </select>
-                        </div>
                         <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;"
                             id="submitBtn">Log in</button>
                     </form>
@@ -51,7 +56,7 @@
                     <div class="admin-login-section" style="text-align:center;">
                         <h3 style="margin-bottom:0.5rem;">Log in as Admin</h3>
                         <p style="font-size:0.95rem; color:var(--text-secondary); margin-bottom:1rem;">Access the admin console for team management and approvals.</p>
-                        <a href="/admin.html" class="btn btn-outline" style="width:60%;">Go to Admin Console</a>
+                        <button class="btn btn-outline" style="width:60%;" onclick="adminLoginRedirect()">Go to Admin Console</button>
                     </div>
                 </div>
             </div>
@@ -86,7 +91,11 @@
                     localStorage.setItem('userName', data.name);
                     localStorage.setItem('userRole', data.role);
                     localStorage.setItem('userId', data.user_id);
-                    window.location.href = '/dashboard.html';
+                    if (data.role === 'admin' || data.role === 'coach') {
+                        window.location.href = '/admin.html';
+                    } else {
+                        window.location.href = '/dashboard.html';
+                    }
                 } else {
                     errDiv.innerHTML = `<span>⚠️</span><span>${data.message || 'Login failed'}</span>`;
                     errDiv.classList.remove('hidden');
@@ -97,6 +106,39 @@
             }
             btn.textContent = 'Sign In';
             btn.disabled = false;
+        }
+        function adminLoginRedirect() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errDiv = document.getElementById('errorMsg');
+            if (!email || !password) {
+                errDiv.innerHTML = '<span>⚠️</span><span>Please fill in your email and password to access the admin console.</span>';
+                errDiv.classList.remove('hidden');
+                return;
+            }
+            // Trigger login and always redirect to admin.html
+            fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.token) {
+                        localStorage.setItem('token', data.token);
+                        localStorage.setItem('userName', data.name);
+                        localStorage.setItem('userRole', data.role);
+                        localStorage.setItem('userId', data.user_id);
+                        window.location.href = '/admin.html';
+                    } else {
+                        errDiv.innerHTML = `<span>⚠️</span><span>${data.message || 'Login failed'}</span>`;
+                        errDiv.classList.remove('hidden');
+                    }
+                })
+                .catch(() => {
+                    errDiv.innerHTML = `<span>⚠️</span><span>Network error. Please try again.</span>`;
+                    errDiv.classList.remove('hidden');
+                });
         }
     </script>
 </body>

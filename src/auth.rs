@@ -109,7 +109,7 @@ pub async fn register_handler(
     Json(payload): Json<RegisterRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     // Validate input
-    if payload.email.is_empty() || payload.password.is_empty() || payload.name.is_empty() {
+    if payload.email.is_empty() || payload.password.is_empty() || payload.first_name.is_empty() || payload.last_name.is_empty() {
         return Err(AppError::BadRequest("All fields are required".into()));
     }
     if payload.password.len() < 6 {
@@ -134,30 +134,70 @@ pub async fn register_handler(
         .map_err(|e| AppError::Internal(format!("Password hashing failed: {}", e)))?
         .to_string();
 
-    // Default role: player (id=1)
-    let role_id: i64 = 1;
+    // Only allow coach or player roles
+    if payload.role != "coach" && payload.role != "player" {
+        return Err(AppError::BadRequest("Role must be 'coach' or 'player'".into()));
+    }
+
+    // Find role id
+    let role_row: Option<(i64,)> = sqlx::query_as("SELECT id FROM roles WHERE name = $1")
+        .bind(&payload.role)
+        .fetch_optional(&pool)
+        .await?;
+    let role_id = role_row
+        .ok_or_else(|| AppError::BadRequest(format!("Role '{}' does not exist", payload.role)))?
+        .0;
+
+    let full_name = format!("{} {}", payload.first_name, payload.last_name);
     let result = sqlx::query(
         "INSERT INTO users (email, password_hash, name, role_id, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id",
     )
     .bind(&payload.email)
     .bind(&password_hash)
-    .bind(&payload.name)
+    .bind(&full_name)
     .bind(role_id)
     .fetch_one(&pool)
     .await?;
 
     let user_id: i64 = result.get(0);
 
+    // If player, insert player details
+    if payload.role == "player" {
+        let details = payload.player_details.as_ref().ok_or_else(|| AppError::BadRequest("Player details required for role 'player'".into()))?;
+        sqlx::query(
+            "INSERT INTO players (user_id, first_name, last_name, date_of_birth, position, jersey_number, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())"
+        )
+        .bind(user_id)
+        .bind(&payload.first_name)
+        .bind(&payload.last_name)
+        .bind(&details.date_of_birth)
+        .bind(&details.position)
+        .bind(details.jersey_number)
+        .execute(&pool)
+        .await?;
+    }
+    // If coach, insert into coaches table
+    if payload.role == "coach" {
+        sqlx::query(
+            "INSERT INTO coaches (user_id, first_name, last_name, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW())"
+        )
+        .bind(user_id)
+        .bind(&payload.first_name)
+        .bind(&payload.last_name)
+        .execute(&pool)
+        .await?;
+    }
+
     // Issue JWT
-    let token = create_token(user_id, &payload.email, "player", &payload.name)?;
+    let token = create_token(user_id, &payload.email, &payload.role, &full_name)?;
 
     Ok(Json(AuthResponse {
         success: true,
         message: "Registration successful".into(),
         token: Some(token),
-        role: Some("player".into()),
+        role: Some(payload.role.clone()),
         user_id: Some(user_id),
-        name: Some(payload.name),
+        name: Some(full_name),
     }))
 }
 

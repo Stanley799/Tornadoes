@@ -1,0 +1,36 @@
+-- 2026-02-22T13:00:00Z
+-- Migration: convert_all_ids_to_bigint
+
+-- Users and Roles
+ALTER TABLE users ALTER COLUMN id TYPE BIGINT;
+ALTER TABLE users ALTER COLUMN role_id TYPE BIGINT;
+ALTER TABLE roles ALTER COLUMN id TYPE BIGINT;
+
+-- Players
+ALTER TABLE players ALTER COLUMN id TYPE BIGINT;
+ALTER TABLE players ALTER COLUMN user_id TYPE BIGINT;
+
+-- Coaches
+ALTER TABLE coaches ALTER COLUMN id TYPE BIGINT;
+ALTER TABLE coaches ALTER COLUMN user_id TYPE BIGINT;
+
+-- Attendance
+ALTER TABLE attendance ALTER COLUMN id TYPE BIGINT;
+ALTER TABLE attendance ALTER COLUMN player_id TYPE BIGINT;
+ALTER TABLE attendance ALTER COLUMN match_id TYPE BIGINT;
+
+-- Announcements
+ALTER TABLE announcements ALTER COLUMN id TYPE BIGINT;
+ALTER TABLE announcements ALTER COLUMN author_id TYPE BIGINT;
+
+-- Matches
+ALTER TABLE matches ALTER COLUMN id TYPE BIGINT;
+ALTER TABLE matches ALTER COLUMN tournament_id TYPE BIGINT;
+ALTER TABLE matches ALTER COLUMN season_id TYPE BIGINT;
+
+-- Tournaments
+ALTER TABLE tournaments ALTER COLUMN id TYPE BIGINT;
+ALTER TABLE tournaments ALTER COLUMN season_id TYPE BIGINT;
+
+-- Seasons
+ALTER TABLE seasons ALTER COLUMN id TYPE BIGINT;

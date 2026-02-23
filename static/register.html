@@ -28,8 +28,12 @@
                     <div id="successMsg" class="alert alert-success hidden"></div>
                     <form id="registerForm" onsubmit="handleRegister(event)">
                         <div class="form-group">
-                            <label class="form-label" for="name">Full Name</label>
-                            <input class="form-input" type="text" id="name" required placeholder="John Doe">
+                            <label class="form-label" for="firstName">First Name</label>
+                            <input class="form-input" type="text" id="firstName" required placeholder="First Name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="lastName">Last Name</label>
+                            <input class="form-input" type="text" id="lastName" required placeholder="Last Name">
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="email">Email</label>
@@ -44,6 +48,29 @@
                             <label class="form-label" for="passwordConfirm">Confirm Password</label>
                             <input class="form-input" type="password" id="passwordConfirm" required minlength="6"
                                 placeholder="Re-enter password">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="role">Role</label>
+                            <select class="form-input" id="role" required onchange="togglePlayerFields()">
+                                <option value="">Select role</option>
+                                <option value="player">Player</option>
+                                <option value="coach">Coach</option>
+                            </select>
+                        </div>
+                        <div id="playerFields" class="hidden">
+                            <!-- Player-specific fields only -->
+                            <div class="form-group">
+                                <label class="form-label" for="dateOfBirth">Date of Birth</label>
+                                <input class="form-input" type="date" id="dateOfBirth">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="position">Position</label>
+                                <input class="form-input" type="text" id="position" placeholder="Position">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="jerseyNumber">Jersey Number</label>
+                                <input class="form-input" type="number" id="jerseyNumber" min="1" max="99" placeholder="Jersey Number">
+                            </div>
                         </div>
                         <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;"
                             id="submitBtn">Join Team</button>
@@ -61,6 +88,16 @@
     </div>
 
     <script>
+        function togglePlayerFields() {
+            const role = document.getElementById('role').value;
+            const playerFields = document.getElementById('playerFields');
+            if (role === 'player') {
+                playerFields.classList.remove('hidden');
+            } else {
+                playerFields.classList.add('hidden');
+            }
+        }
+
         async function handleRegister(e) {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
@@ -81,14 +118,44 @@
                 btn.disabled = false;
                 return;
             }
+
+            const role = document.getElementById('role').value;
+            if (!role) {
+                errDiv.innerHTML = `<span>⚠️</span><span>Please select a role.</span>`;
+                errDiv.classList.remove('hidden');
+                btn.textContent = 'Join Team';
+                btn.disabled = false;
+                return;
+            }
+
+            let player_details = null;
+            if (role === 'player') {
+                player_details = {
+                    date_of_birth: document.getElementById('dateOfBirth').value,
+                    position: document.getElementById('position').value,
+                    jersey_number: parseInt(document.getElementById('jerseyNumber').value)
+                };
+                // Basic validation
+                if (!player_details.date_of_birth || !player_details.position || isNaN(player_details.jersey_number)) {
+                    errDiv.innerHTML = `<span>⚠️</span><span>All player fields are required.</span>`;
+                    errDiv.classList.remove('hidden');
+                    btn.textContent = 'Join Team';
+                    btn.disabled = false;
+                    return;
+                }
+            }
+
             try {
                 const res = await fetch('/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        name: document.getElementById('name').value,
+                        first_name: document.getElementById('firstName').value,
+                        last_name: document.getElementById('lastName').value,
                         email: document.getElementById('email').value,
-                        password
+                        password,
+                        role,
+                        player_details
                     })
                 });
                 const data = await res.json();

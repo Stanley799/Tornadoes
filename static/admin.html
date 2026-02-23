@@ -6,28 +6,148 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin — Tornadoes Handball</title>
     <link rel="stylesheet" href="/style.css">
+    <style>
+        /* Remove custom admin styles and use dashboard theme */
+        body, .page-wrapper {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font);
+        }
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            transition: var(--transition);
+        }
+        .card:hover {
+            background: var(--bg-card-hover);
+            box-shadow: var(--shadow-lg);
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.7rem;
+            margin-bottom: 1.2rem;
+        }
+        .section-header h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--accent);
+        }
+        .table-wrapper th, .table-wrapper td {
+            padding: 0.7rem;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            color: var(--text-primary);
+        }
+        .table-wrapper th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+            color: var(--accent);
+        }
+        .btn {
+            border-radius: var(--radius-sm);
+            padding: 0.5rem 1.2rem;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+        }
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+        .btn-outline {
+            background: var(--bg-primary);
+            color: var(--accent);
+            border: 1.5px solid var(--accent);
+        }
+        .btn-outline:hover {
+            background: var(--bg-secondary);
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+            border: none;
+        }
+        .btn-danger:hover {
+            background: #b71c1c;
+        }
+        .badge-role {
+            background: var(--accent-subtle);
+            color: var(--accent);
+            border-radius: var(--radius-sm);
+            padding: 0.25rem 0.7rem;
+            font-size: 0.98rem;
+        }
+        .modal {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 2rem 1.2rem;
+            min-width: 320px;
+            max-width: 95vw;
+            color: var(--text-primary);
+        }
+        .form-label {
+            font-family: var(--font);
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            font-size: 1rem;
+            background: var(--bg-input);
+            color: var(--text-primary);
+        }
+        .invalid-feedback {
+            color: var(--danger);
+            font-size: 0.92rem;
+            margin-top: 0.2rem;
+        }
+        .toast-container {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 2000;
+        }
+        .toast {
+            background: var(--bg-secondary);
+            color: var(--accent);
+            border-radius: var(--radius-sm);
+            padding: 0.7rem 1.2rem;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .toast-success { background: var(--success); color: #fff; }
+        .toast-error { background: var(--danger); color: #fff; }
+        select:disabled, option[value=""] {
+            color: var(--text-muted);
+        }
+        hr.section-divider {
+            border: none;
+            border-top: 2px solid var(--border);
+            margin: 2rem 0;
+        }
+    </style>
 </head>
 
 <body>
     <div class="page-wrapper">
         <nav class="navbar">
             <div class="container">
-                                <!-- Initial Data Entry Checklist -->
-                                <div class="card" id="dataChecklistCard" style="margin-bottom:1.5rem; background:#f8f9fa; border:1px solid #e0e0e0;">
-                                    <div class="section-header" style="display:flex; align-items:center; justify-content:space-between;">
-                                        <h3>📝 Initial Setup Checklist</h3>
-                                        <button class="btn btn-outline btn-sm" onclick="document.getElementById('dataChecklistCard').style.display='none'">Dismiss</button>
-                                    </div>
-                                    <ul style="margin:0 0 1rem 1.5rem;">
-                                        <li><strong>Add team members</strong> (users/roles)</li>
-                                        <li><strong>Create at least one season</strong></li>
-                                        <li><strong>Add tournaments (optional)</strong></li>
-                                        <li><strong>Schedule matches</strong> (assign to season/tournament)</li>
-                                        <li><strong>Mark attendance</strong> for matches</li>
-                                        <li><strong>Review and approve announcements</strong></li>
-                                    </ul>
-                                    <div class="text-muted" style="font-size:0.95em;">Tip: Complete these steps to ensure the system is ready for use. You can dismiss this checklist at any time.</div>
-                                </div>
                 <a href="/" class="navbar-brand"><span class="icon">🏐</span> Tornadoes</a>
                 <ul class="navbar-links">
                     <li><a href="/dashboard.html">Dashboard</a></li>
@@ -115,132 +235,230 @@
                             onclick="document.getElementById('tournamentForm').classList.toggle('hidden')">+ New
                             Tournament</button>
                     </div>
-                    <form id="tournamentForm" class="hidden" onsubmit="createTournament(event)"
-                        style="margin-bottom:1rem;">
+                    <form id="tournamentForm" class="hidden" onsubmit="createTournament(event)" style="margin-bottom:1rem;">
                         <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:flex-end;">
                             <div class="form-group" style="margin-bottom:0; flex:1; min-width:150px;">
                                 <label class="form-label">Name</label>
                                 <input class="form-input" id="tName" required placeholder="e.g. County League">
                                 <div class="invalid-feedback" id="tNameError"></div>
                             </div>
+                            <div class="form-group" style="margin-bottom:0; flex:1; min-width:150px;">
+                                <label class="form-label">Venue</label>
+                                <input class="form-input" id="tVenue" required placeholder="e.g. City Stadium">
+                                <div class="invalid-feedback" id="tVenueError"></div>
+                            </div>
                             <div class="form-group" style="margin-bottom:0;">
-                                <label class="form-label">Season</label>
-                                <select class="form-select" id="tSeason" required></select>
-                                <div class="invalid-feedback" id="tSeasonError"></div>
+                                <label class="form-label">Date</label>
+                                <input class="form-input" type="date" id="tDate" required>
+                                <div class="invalid-feedback" id="tDateError"></div>
                             </div>
                             <button class="btn btn-primary btn-sm" type="submit">Create</button>
                         </div>
                     </form>
                     <div id="tournamentsList"></div>
-                                </div>
+                </div>
 
-                                <!-- Match Management -->
-                                                <!-- Attendance Management -->
-                                                <div class="card" style="margin-bottom:1.5rem;">
-                                                    <div class="section-header" style="margin-bottom:1rem;">
-                                                        <h3>📝 Attendance</h3>
-                                                    </div>
-                                                    <div style="margin-bottom:1rem;">
-                                                        <label class="form-label">Select Match</label>
-                                                        <select class="form-select" id="attendanceMatchSelect" onchange="loadAttendanceForMatch()"></select>
-                                                    </div>
-                                                    <div class="table-wrapper">
-                                                        <table>
-                                                            <thead>
-                                                                <tr>
-                                                                    <th>Player</th>
-                                                                    <th>Present?</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody id="attendanceBody"></tbody>
-                                                        </table>
-                                                    </div>
-                                                    <div class="flex gap-1" style="margin-top:1rem;">
-                                                        <button class="btn btn-primary" onclick="saveAttendance()">Save Attendance</button>
-                                                    </div>
-                                                </div>
-                                <div class="card" style="margin-bottom:1.5rem;">
-                                    <div class="section-header" style="margin-bottom:1rem;">
-                                        <h3>📅 Matches</h3>
-                                        <button class="btn btn-primary btn-sm" onclick="showMatchForm()">+ New Match</button>
-                                    </div>
-                                    <div class="table-wrapper">
-                                        <table>
-                                            <thead>
-                                                <tr>
-                                                    <th>Date</th>
-                                                    <th>Opponent</th>
-                                                    <th>Venue</th>
-                                                    <th>Season</th>
-                                                    <th>Tournament</th>
-                                                    <th>Result</th>
-                                                    <th>Score</th>
-                                                    <th>Link</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="adminMatchesBody"></tbody>
-                                        </table>
-                                    </div>
-                                    <p id="noAdminMatches" class="text-muted text-center mt-2 hidden">No matches found.</p>
-                                </div>
+                <!-- Match Management -->
+                <div class="card" style="margin-bottom:1.5rem;">
+                    <div class="section-header" style="margin-bottom:1rem;">
+                        <h3>📅 Matches</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showMatchForm()">+ New Match</button>
+                    </div>
+                    <form id="matchForm" class="hidden" onsubmit="createMatch(event)" style="margin-bottom:1rem;">
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:flex-end;">
+                            <div class="form-group" style="margin-bottom:0; flex:1; min-width:150px;">
+                                <label class="form-label">Opponent Team(s)</label>
+                                <input class="form-input" id="mOpponent" required placeholder="e.g. Team A, Team B">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0; flex:1; min-width:150px;">
+                                <label class="form-label">Venue(s)</label>
+                                <input class="form-input" id="mVenue" required placeholder="e.g. City Stadium, Arena">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label class="form-label">Time(s)</label>
+                                <input class="form-input" id="mTime" required placeholder="e.g. 15:00, 17:00">
+                            </div>
+                            <button class="btn btn-primary btn-sm" type="submit">Create</button>
+                        </div>
+                    </form>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Opponent</th>
+                                    <th>Venue</th>
+                                    <th>Time</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminMatchesBody"></tbody>
+                        </table>
+                    </div>
+                    <p id="noAdminMatches" class="text-muted text-center mt-2 hidden">No matches found.</p>
+                </div>
 
-                                <!-- Add/Edit Match Modal -->
-                                <div class="modal-overlay" id="adminMatchModal">
-                                    <div class="modal">
-                                        <h3 id="adminMatchModalTitle">Add Match</h3>
-                                        <form onsubmit="submitAdminMatch(event)">
-                                            <input type="hidden" id="adminMatchId">
-                                            <div class="form-group">
-                                                <label class="form-label">Date</label>
-                                                <input class="form-input" type="date" id="adminMDate" required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label">Opponent</label>
-                                                <input class="form-input" id="adminMOpponent" required>
-                                                <div class="invalid-feedback" id="adminMOpponentError"></div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label">Venue</label>
-                                                <input class="form-input" id="adminMVenue" required>
-                                                <div class="invalid-feedback" id="adminMVenueError"></div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label">Season</label>
-                                                <select class="form-select" id="adminMSeason" required></select>
-                                                <div class="invalid-feedback" id="adminMDateError"></div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label">Tournament (optional)</label>
-                                                <select class="form-select" id="adminMTournament">
-                                                    <option value="">None</option>
-                                                </select>
-                                                <div class="invalid-feedback" id="adminMSeasonError"></div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label">Match Link (optional)</label>
-                                                <input class="form-input" id="adminMLink" placeholder="https://...">
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label">Result (optional)</label>
-                                                <select class="form-select" id="adminMResult">
-                                                    <option value="">—</option>
-                                                    <option value="win">Win</option>
-                                                    <option value="loss">Loss</option>
-                                                    <option value="draw">Draw</option>
-                                                </select>
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label">Score (optional)</label>
-                                                <input class="form-input" id="adminMScore" placeholder="e.g. 28-24">
-                                            </div>
-                                            <div class="flex gap-1">
-                                                <button type="submit" class="btn btn-primary">Save</button>
-                                                <button type="button" class="btn btn-outline" onclick="closeModal('adminMatchModal')">Cancel</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
+                <!-- Attendance Management -->
+                <div class="card" style="margin-bottom:1.5rem;">
+                    <div class="section-header" style="margin-bottom:1rem;">
+                        <h3>📝 Attendance</h3>
+                    </div>
+                    <div style="margin-bottom:1rem;">
+                        <label class="form-label">Date</label>
+                        <input class="form-input" type="date" id="attendanceDate" value="" required>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Present?</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="flex gap-1" style="margin-top:1rem;">
+                        <button class="btn btn-primary" onclick="saveAttendance()">Save Attendance</button>
+                    </div>
+                </div>
+
+                <!-- Add/Edit Match Modal -->
+                <div class="modal-overlay" id="adminMatchModal">
+                    <div class="modal">
+                        <h3 id="adminMatchModalTitle">Add Match</h3>
+                        <form onsubmit="submitAdminMatch(event)">
+                            <input type="hidden" id="adminMatchId">
+                            <div class="form-group">
+                                <label class="form-label">Date</label>
+                                <input class="form-input" type="date" id="adminMDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Opponent</label>
+                                <input class="form-input" id="adminMOpponent" required>
+                                <div class="invalid-feedback" id="adminMOpponentError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Venue</label>
+                                <input class="form-input" id="adminMVenue" required>
+                                <div class="invalid-feedback" id="adminMVenueError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Season</label>
+                                <select class="form-select" id="adminMSeason" required></select>
+                                <div class="invalid-feedback" id="adminMDateError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tournament (optional)</label>
+                                <select class="form-select" id="adminMTournament">
+                                    <option value="">None</option>
+                                </select>
+                                <div class="invalid-feedback" id="adminMSeasonError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Match Link (optional)</label>
+                                <input class="form-input" id="adminMLink" placeholder="https://...">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Result (optional)</label>
+                                <select class="form-select" id="adminMResult">
+                                    <option value="">—</option>
+                                    <option value="win">Win</option>
+                                    <option value="loss">Loss</option>
+                                    <option value="draw">Draw</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Score (optional)</label>
+                                <input class="form-input" id="adminMScore" placeholder="e.g. 28-24">
+                            </div>
+                            <div class="flex gap-1">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-outline" onclick="closeModal('adminMatchModal')">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Edit User Modal -->
+                <div class="modal-overlay" id="editUserModal">
+                    <div class="modal">
+                        <h3>Edit User</h3>
+                        <form onsubmit="submitEditUser(event)">
+                            <input type="hidden" id="editUserId">
+                            <div class="form-group">
+                                <label class="form-label">Name</label>
+                                <input class="form-input" id="editUName" required>
+                                <div class="invalid-feedback" id="editUNameError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input class="form-input" id="editUEmail" required type="email">
+                                <div class="invalid-feedback" id="editUEmailError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Role</label>
+                                <select class="form-select" id="editURole" required>
+                                    <option value="player">Player</option>
+                                    <option value="coach">Coach</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                                <div class="invalid-feedback" id="editURoleError"></div>
+                            </div>
+                            <div class="flex gap-1">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-outline" onclick="closeModal('editUserModal')">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Edit Season Modal -->
+                <div class="modal-overlay" id="editSeasonModal">
+                    <div class="modal">
+                        <h3>Edit Season</h3>
+                        <form onsubmit="submitEditSeason(event)">
+                            <input type="hidden" id="editSeasonId">
+                            <div class="form-group">
+                                <label class="form-label">Name</label>
+                                <input class="form-input" id="editSName" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Start</label>
+                                <input class="form-input" type="date" id="editSStart" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">End</label>
+                                <input class="form-input" type="date" id="editSEnd" required>
+                            </div>
+                            <div class="flex gap-1">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-outline" onclick="closeModal('editSeasonModal')">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Edit Tournament Modal -->
+                <div class="modal-overlay" id="editTournamentModal">
+                    <div class="modal">
+                        <h3>Edit Tournament</h3>
+                        <form onsubmit="submitEditTournament(event)">
+                            <input type="hidden" id="editTournamentId">
+                            <div class="form-group">
+                                <label class="form-label">Name</label>
+                                <input class="form-input" id="editTName" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Season</label>
+                                <select class="form-select" id="editTSeason" required></select>
+                            </div>
+                            <div class="flex gap-1">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-outline" onclick="closeModal('editTournamentModal')">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -253,9 +471,7 @@
 
     <script>
         const token = localStorage.getItem('token');
-        const role = localStorage.getItem('userRole');
         if (!token) window.location.href = '/login.html';
-        if (role !== 'admin' && role !== 'coach') { window.location.href = '/dashboard.html'; }
 
         function authHeaders() { return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }; }
         function showToast(m, t = 'success') { const d = document.createElement('div'); d.className = `toast toast-${t}`; d.textContent = m; document.getElementById('toasts').appendChild(d); setTimeout(() => d.remove(), 3500); }
@@ -421,300 +637,40 @@
             if (!document.getElementById('tName').value) {
                 document.getElementById('tNameError').textContent = 'Name required'; valid = false;
             } else { document.getElementById('tNameError').textContent = ''; }
-            if (!document.getElementById('tSeason').value) {
-                document.getElementById('tSeasonError').textContent = 'Season required'; valid = false;
-            } else { document.getElementById('tSeasonError').textContent = ''; }
+            if (!document.getElementById('tVenue').value) {
+                document.getElementById('tVenueError').textContent = 'Venue required'; valid = false;
+            } else { document.getElementById('tVenueError').textContent = ''; }
+            if (!document.getElementById('tDate').value) {
+                document.getElementById('tDateError').textContent = 'Date required'; valid = false;
+            } else { document.getElementById('tDateError').textContent = ''; }
             if (!valid) return;
             try {
                 const res = await fetch('/api/tournaments', {
                     method: 'POST', headers: authHeaders(),
                     body: JSON.stringify({
                         name: document.getElementById('tName').value,
-                        season_id: parseInt(document.getElementById('tSeason').value)
+                        venue: document.getElementById('tVenue').value,
+                        date: document.getElementById('tDate').value
                     })
                 });
                 const data = await res.json();
-                if (data.success) { showToast('Tournament created'); loadTournaments(); document.getElementById('tournamentForm').classList.add('hidden'); }
-                else showToast(data.message, 'error');
+                if (data.success) {
+                    showToast('Tournament created');
+                    loadTournaments();
+                    document.getElementById('tournamentForm').classList.add('hidden');
+                } else showToast(data.message, 'error');
             } catch { showToast('Network error', 'error'); }
         }
 
         // Load everything
-                                                // ─── Edit User Modal ─────────────────────────────
-                                                function showEditUser(id) {
-                                                    fetch('/api/users', { headers: authHeaders() }).then(r => r.json()).then(users => {
-                                                        const u = users.find(x => x.id === id);
-                                                        document.getElementById('editUserId').value = u.id;
-                                                        document.getElementById('editUName').value = u.name;
-                                                        document.getElementById('editUEmail').value = u.email;
-                                                        document.getElementById('editURole').value = u.role;
-                                                        document.getElementById('editUserModal').classList.add('active');
-                                                    });
-                                                }
-                                                async function submitEditUser(e) {
-                                                    e.preventDefault();
-                                                    const id = document.getElementById('editUserId').value;
-                                                    const payload = {
-                                                        name: document.getElementById('editUName').value,
-                                                        email: document.getElementById('editUEmail').value,
-                                                        role: document.getElementById('editURole').value
-                                                    };
-                                                    try {
-                                                        const res = await fetch(`/api/users/${id}`, {
-                                                            method: 'PATCH', headers: authHeaders(),
-                                                            body: JSON.stringify(payload)
-                                                        });
-                                                        const data = await res.json();
-                                                        if (data.success) showToast('User updated');
-                                                        else showToast(data.message, 'error');
-                                                        closeModal('editUserModal');
-                                                        loadUsers();
-                                                    } catch { showToast('Network error', 'error'); }
-                                                }
-                                                        <!-- Edit User Modal -->
-                                                        <div class="modal-overlay" id="editUserModal">
-                                                            <div class="modal">
-                                                                <h3>Edit User</h3>
-                                                                <form onsubmit="submitEditUser(event)">
-                                                                    <input type="hidden" id="editUserId">
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Name</label>
-                                                                        <input class="form-input" id="editUName" required>
-                                                                        <div class="invalid-feedback" id="editUNameError"></div>
-                                                                    </div>
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Email</label>
-                                                                        <input class="form-input" id="editUEmail" required type="email">
-                                                                        <div class="invalid-feedback" id="editUEmailError"></div>
-                                                                    </div>
-                                                                    <div class="form-group">
-                                                                        <label class="form-label">Role</label>
-                                                                        <select class="form-select" id="editURole" required>
-                                                                            <option value="player">Player</option>
-                                                                            <option value="coach">Coach</option>
-                                                                            <option value="admin">Admin</option>
-                                                                        </select>
-                                                                        <div class="invalid-feedback" id="editURoleError"></div>
-                                                                    </div>
-                                                                    <div class="flex gap-1">
-                                                                        <button type="submit" class="btn btn-primary">Save</button>
-                                                                        <button type="button" class="btn btn-outline" onclick="closeModal('editUserModal')">Cancel</button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-                                        async function deleteUser(id) {
-                                            if (!confirm('⚠️ This action cannot be undone. Delete this user?')) return;
-                                            try {
-                                                const res = await fetch(`/api/users/${id}`, {
-                                                    method: 'DELETE', headers: authHeaders()
-                                                });
-                                                const data = await res.json();
-                                                if (data.success) {
-                                                    showToast('User deleted');
-                                                    loadUsers();
-                                                } else {
-                                                    showToast(data.message, 'error');
-                                                }
-                                            } catch { showToast('Network error', 'error'); }
-                                        }
-                                // ─── Attendance Management ─────────────────────────────
-                                let attendanceUsers = [];
-                                let attendanceRecords = [];
-                                let attendanceMatchId = null;
-                                async function loadAttendanceMatches() {
-                                    try {
-                                        const res = await fetch('/api/matches');
-                                        const matches = await res.json();
-                                        const sel = document.getElementById('attendanceMatchSelect');
-                                        sel.innerHTML = matches.map(m => `<option value="${m.id}">${m.date} — ${esc(m.opponent)}</option>`).join('');
-                                        if (matches.length) {
-                                            attendanceMatchId = matches[0].id;
-                                            loadAttendanceForMatch();
-                                        }
-                                    } catch { }
-                                }
-
-                                async function loadAttendanceForMatch() {
-                                    attendanceMatchId = parseInt(document.getElementById('attendanceMatchSelect').value);
-                                    // Load users
-                                    const usersRes = await fetch('/api/users', { headers: authHeaders() });
-                                    attendanceUsers = await usersRes.json();
-                                    // Load attendance records
-                                    const attRes = await fetch('/api/attendance/list', { headers: authHeaders() });
-                                    const allAttendance = await attRes.json();
-                                    attendanceRecords = attendanceUsers.map(u => {
-                                        const rec = allAttendance.find(a => a.match_id === attendanceMatchId && a.user_id === u.id);
-                                        return { user_id: u.id, name: u.name, present: rec ? rec.present : false };
-                                    });
-                                    renderAttendanceTable();
-                                }
-
-                                function renderAttendanceTable() {
-                                    document.getElementById('attendanceBody').innerHTML = attendanceRecords.map((r, i) => `
-                                        <tr>
-                                            <td>${esc(r.name)}</td>
-                                            <td><input type="checkbox" ${r.present ? 'checked' : ''} onchange="attendanceRecords[${i}].present = this.checked"></td>
-                                        </tr>
-                                    `).join('');
-                                }
-
-                                async function saveAttendance() {
-                                    try {
-                                        const res = await fetch('/api/attendance/bulk', {
-                                            method: 'POST', headers: authHeaders(),
-                                            body: JSON.stringify({ match_id: attendanceMatchId, records: attendanceRecords.map(r => ({ user_id: r.user_id, present: r.present })) })
-                                        });
-                                        const data = await res.json();
-                                        if (data.success) showToast('Attendance saved');
-                                        else showToast(data.message, 'error');
-                                    } catch { showToast('Network error', 'error'); }
-                                }
-
-                                // Load attendance matches on page load
-                                loadAttendanceMatches();
-                        // ─── Edit Season Modal ─────────────────────────────
-                        function showEditSeason(id) {
-                            fetch('/api/seasons').then(r => r.json()).then(seasons => {
-                                const s = seasons.find(x => x.id === id);
-                                document.getElementById('editSeasonId').value = s.id;
-                                document.getElementById('editSName').value = s.name;
-                                document.getElementById('editSStart').value = s.start_date;
-                                document.getElementById('editSEnd').value = s.end_date;
-                                document.getElementById('editSeasonModal').classList.add('active');
-                            });
-                        }
-                        async function submitEditSeason(e) {
-                            e.preventDefault();
-                            const id = document.getElementById('editSeasonId').value;
-                            const payload = {
-                                name: document.getElementById('editSName').value,
-                                start_date: document.getElementById('editSStart').value,
-                                end_date: document.getElementById('editSEnd').value
-                            };
-                            try {
-                                const res = await fetch(`/api/seasons/${id}`, {
-                                    method: 'PATCH', headers: authHeaders(),
-                                    body: JSON.stringify(payload)
-                                });
-                                const data = await res.json();
-                                if (data.success) showToast('Season updated');
-                                else showToast(data.message, 'error');
-                                closeModal('editSeasonModal');
-                                loadSeasons();
-                            } catch { showToast('Network error', 'error'); }
-                        }
-
-                        // ─── Edit Tournament Modal ──────────────────────────
-                        function showEditTournament(id) {
-                            Promise.all([
-                                fetch('/api/tournaments').then(r => r.json()),
-                                fetch('/api/seasons').then(r => r.json())
-                            ]).then(([tournaments, seasons]) => {
-                                const t = tournaments.find(x => x.id === id);
-                                document.getElementById('editTournamentId').value = t.id;
-                                document.getElementById('editTName').value = t.name;
-                                document.getElementById('editTSeason').innerHTML = seasons.map(s => `<option value="${s.id}"${s.id===t.season_id?' selected':''}>${esc(s.name)}</option>`).join('');
-                                document.getElementById('editTournamentModal').classList.add('active');
-                            });
-                        }
-                        async function submitEditTournament(e) {
-                            e.preventDefault();
-                            const id = document.getElementById('editTournamentId').value;
-                            const payload = {
-                                name: document.getElementById('editTName').value,
-                                season_id: parseInt(document.getElementById('editTSeason').value)
-                            };
-                            try {
-                                const res = await fetch(`/api/tournaments/${id}`, {
-                                    method: 'PATCH', headers: authHeaders(),
-                                    body: JSON.stringify(payload)
-                                });
-                                const data = await res.json();
-                                if (data.success) showToast('Tournament updated');
-                                else showToast(data.message, 'error');
-                                closeModal('editTournamentModal');
-                                loadTournaments();
-                            } catch { showToast('Network error', 'error'); }
-                        }
-                                <!-- Edit Season Modal -->
-                                <div class="modal-overlay" id="editSeasonModal">
-                                    <div class="modal">
-                                        <h3>Edit Season</h3>
-                                        <form onsubmit="submitEditSeason(event)">
-                                            <input type="hidden" id="editSeasonId">
-                                            <div class="form-group">
-                                                <label class="form-label">Name</label>
-                                                <input class="form-input" id="editSName" required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label">Start</label>
-                                                <input class="form-input" type="date" id="editSStart" required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label">End</label>
-                                                <input class="form-input" type="date" id="editSEnd" required>
-                                            </div>
-                                            <div class="flex gap-1">
-                                                <button type="submit" class="btn btn-primary">Save</button>
-                                                <button type="button" class="btn btn-outline" onclick="closeModal('editSeasonModal')">Cancel</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-
-                                <!-- Edit Tournament Modal -->
-                                <div class="modal-overlay" id="editTournamentModal">
-                                    <div class="modal">
-                                        <h3>Edit Tournament</h3>
-                                        <form onsubmit="submitEditTournament(event)">
-                                            <input type="hidden" id="editTournamentId">
-                                            <div class="form-group">
-                                                <label class="form-label">Name</label>
-                                                <input class="form-input" id="editTName" required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label">Season</label>
-                                                <select class="form-select" id="editTSeason" required></select>
-                                            </div>
-                                            <div class="flex gap-1">
-                                                <button type="submit" class="btn btn-primary">Save</button>
-                                                <button type="button" class="btn btn-outline" onclick="closeModal('editTournamentModal')">Cancel</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                async function deleteSeason(id) {
-                    if (!confirm('⚠️ This action cannot be undone. Delete this season?')) return;
-                    try {
-                        const res = await fetch(`/api/seasons/${id}`, {
-                            method: 'DELETE', headers: authHeaders()
-                        });
-                        const data = await res.json();
-                        if (data.success) {
-                            showToast('Season deleted');
-                            loadSeasons();
-                        } else {
-                            showToast(data.message, 'error');
-                        }
-                    } catch { showToast('Network error', 'error'); }
-                }
-
-                async function deleteTournament(id) {
-                    if (!confirm('⚠️ This action cannot be undone. Delete this tournament?')) return;
-                    try {
-                        const res = await fetch(`/api/tournaments/${id}`, {
-                            method: 'DELETE', headers: authHeaders()
-                        });
-                        const data = await res.json();
-                        if (data.success) {
-                            showToast('Tournament deleted');
-                            loadTournaments();
-                        } else {
-                            showToast(data.message, 'error');
-                        }
-                    } catch { showToast('Network error', 'error'); }
-                }
+        function setDropdownEmptyState(sel, message) {
+            sel.innerHTML = `<option value="">${message}</option>`;
+            sel.disabled = true;
+        }
+        // Example usage for empty dropdowns:
+        // In loadSeasonsForAdminMatch, after fetching:
+        // if (!seasons.length) setDropdownEmptyState(document.getElementById('adminMSeason'), 'No seasons available');
+        // if (!tournaments.length) setDropdownEmptyState(document.getElementById('adminMTournament'), 'No tournaments available');
         loadPending();
         loadUsers();
         loadSeasons();
@@ -724,7 +680,6 @@
         // ─── Match Management (Admin) ─────────────────────────────
         let adminMatches = [];
         function showMatchForm(editId = null) {
-            loadSeasonsForAdminMatch();
             document.getElementById('adminMatchModalTitle').textContent = editId ? 'Edit Match' : 'Add Match';
             document.getElementById('adminMatchId').value = editId || '';
             if (editId) {
@@ -732,8 +687,6 @@
                 document.getElementById('adminMDate').value = m.date;
                 document.getElementById('adminMOpponent').value = m.opponent;
                 document.getElementById('adminMVenue').value = m.venue;
-                document.getElementById('adminMSeason').value = m.season_id;
-                document.getElementById('adminMTournament').value = m.tournament_id || '';
                 document.getElementById('adminMLink').value = m.match_link || '';
                 document.getElementById('adminMResult').value = m.result || '';
                 document.getElementById('adminMScore').value = m.score || '';
@@ -742,8 +695,6 @@
                 document.getElementById('adminMDate').value = '';
                 document.getElementById('adminMOpponent').value = '';
                 document.getElementById('adminMVenue').value = '';
-                document.getElementById('adminMSeason').value = '';
-                document.getElementById('adminMTournament').value = '';
                 document.getElementById('adminMLink').value = '';
                 document.getElementById('adminMResult').value = '';
                 document.getElementById('adminMScore').value = '';

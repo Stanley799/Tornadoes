@@ -14,6 +14,11 @@ pub async fn mark_attendance(
     require_coach_or_admin(&claims)?;
 
     // Upsert: insert or update attendance, including date
+    let date = match &payload.date {
+        Some(d) => Some(chrono::NaiveDate::parse_from_str(d, "%Y-%m-%d")
+            .map_err(|_| AppError::BadRequest("Invalid date format".into()))?),
+        None => None,
+    };
     sqlx::query(
         "INSERT INTO attendance (user_id, match_id, present, date) VALUES ($1, $2, $3, $4) \
          ON CONFLICT (user_id, match_id) DO UPDATE SET present = EXCLUDED.present, date = EXCLUDED.date"
@@ -21,7 +26,7 @@ pub async fn mark_attendance(
     .bind(payload.user_id)
     .bind(payload.match_id)
     .bind(payload.present)
-    .bind(payload.date.clone())
+    .bind(date)
     .execute(&pool)
     .await?;
 
@@ -40,6 +45,11 @@ pub async fn mark_attendance_bulk(
     require_coach_or_admin(&claims)?;
 
     for record in &payload.records {
+        let date = match record.date.clone().or_else(|| payload.date.clone()) {
+            Some(d) => Some(chrono::NaiveDate::parse_from_str(&d, "%Y-%m-%d")
+                .map_err(|_| AppError::BadRequest("Invalid date format".into()))?),
+            None => None,
+        };
         sqlx::query(
             "INSERT INTO attendance (user_id, match_id, present, date) VALUES ($1, $2, $3, $4) \
              ON CONFLICT (user_id, match_id) DO UPDATE SET present = EXCLUDED.present, date = EXCLUDED.date"
@@ -47,7 +57,7 @@ pub async fn mark_attendance_bulk(
         .bind(record.user_id)
         .bind(payload.match_id)
         .bind(record.present)
-        .bind(record.date.clone().or_else(|| payload.date.clone()))
+        .bind(date)
         .execute(&pool)
         .await?;
     }
