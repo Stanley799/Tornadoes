@@ -117,13 +117,23 @@
             const matchMap = {};
             matches.forEach(m => matchMap[m.id] = `vs ${m.opponent} (${m.date})`);
 
-            body.innerHTML = records.map(r => `
+            body.innerHTML = records.map(r => {
+                let matchInfo = '';
+                if (r.match_id && matchMap[r.match_id]) {
+                    matchInfo = matchMap[r.match_id];
+                } else if (!r.match_id && r.date) {
+                    matchInfo = `Training (${esc(r.date)})`;
+                } else {
+                    matchInfo = '—';
+                }
+                return `
         <tr>
             <td>${esc(r.user_name || 'User #' + r.user_id)}</td>
-            <td>${esc(matchMap[r.match_id] || 'Match #' + r.match_id)}</td>
+            <td>${matchInfo}</td>
             <td><span class="badge ${r.present ? 'badge-present' : 'badge-absent'}">${r.present ? 'PRESENT' : 'ABSENT'}</span></td>
         </tr>
-    `).join('');
+    `;
+            }).join('');
         }
 
         function loadPlayersForMatch() {

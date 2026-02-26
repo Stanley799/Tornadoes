@@ -19,11 +19,16 @@ pub async fn mark_attendance(
             .map_err(|_| AppError::BadRequest("Invalid date format".into()))?),
         None => None,
     };
+    // Find player_id from user_id
+    let rec = sqlx::query!("SELECT id FROM players WHERE user_id = $1", payload.user_id)
+        .fetch_one(&pool)
+        .await?;
+    let player_id = rec.id;
     sqlx::query(
-        "INSERT INTO attendance (user_id, match_id, present, date) VALUES ($1, $2, $3, $4) \
-         ON CONFLICT (user_id, match_id) DO UPDATE SET present = EXCLUDED.present, date = EXCLUDED.date"
+        "INSERT INTO attendance (player_id, match_id, attended, date) VALUES ($1, $2, $3, $4) \
+         ON CONFLICT (player_id, match_id) DO UPDATE SET attended = EXCLUDED.attended, date = EXCLUDED.date"
     )
-    .bind(payload.user_id)
+    .bind(player_id)
     .bind(payload.match_id)
     .bind(payload.present)
     .bind(date)
@@ -50,12 +55,24 @@ pub async fn mark_attendance_bulk(
                 .map_err(|_| AppError::BadRequest("Invalid date format".into()))?),
             None => None,
         };
+        // Find player_id from user_id
+        let rec = sqlx::query!("SELECT id FROM players WHERE user_id = $1", record.user_id)
+            .fetch_optional(&pool)
+            .await?;
+        let player_id = match rec {
+            Some(r) => r.id,
+            None => {
+                tracing::warn!("No player found for user_id {}", record.user_id);
+                continue; // Skip this record
+            }
+        };
+        let match_id = payload.match_id;
         sqlx::query(
-            "INSERT INTO attendance (user_id, match_id, present, date) VALUES ($1, $2, $3, $4) \
-             ON CONFLICT (user_id, match_id) DO UPDATE SET present = EXCLUDED.present, date = EXCLUDED.date"
+            "INSERT INTO attendance (player_id, match_id, attended, date) VALUES ($1, $2, $3, $4) \
+             ON CONFLICT (player_id, match_id) DO UPDATE SET attended = EXCLUDED.attended, date = EXCLUDED.date"
         )
-        .bind(record.user_id)
-        .bind(payload.match_id)
+        .bind(player_id)
+        .bind(match_id)
         .bind(record.present)
         .bind(date)
         .execute(&pool)
@@ -76,17 +93,17 @@ pub async fn list_attendance(
 ) -> Result<impl IntoResponse, AppError> {
     let rows = if claims.role == "coach" || claims.role == "admin" {
         sqlx::query_as::<_, (i64, i64, Option<String>, i64, bool, Option<String>)>(
-            "SELECT a.id, a.user_id, u.name, a.match_id, a.present, a.date \
-             FROM attendance a LEFT JOIN users u ON a.user_id = u.id \
+            "SELECT a.id, a.player_id, u.name, a.match_id, a.attended, a.date \
+             FROM attendance a LEFT JOIN players p ON a.player_id = p.id LEFT JOIN users u ON p.user_id = u.id \
              ORDER BY a.match_id DESC",
         )
         .fetch_all(&pool)
         .await?
     } else {
         sqlx::query_as::<_, (i64, i64, Option<String>, i64, bool, Option<String>)>(
-            "SELECT a.id, a.user_id, u.name, a.match_id, a.present, a.date \
-             FROM attendance a LEFT JOIN users u ON a.user_id = u.id \
-             WHERE a.user_id = ? ORDER BY a.match_id DESC",
+            "SELECT a.id, a.player_id, u.name, a.match_id, a.attended, a.date \
+             FROM attendance a LEFT JOIN players p ON a.player_id = p.id LEFT JOIN users u ON p.user_id = u.id \
+             WHERE a.player_id = $1 ORDER BY a.match_id DESC",
         )
         .bind(claims.sub)
         .fetch_all(&pool)

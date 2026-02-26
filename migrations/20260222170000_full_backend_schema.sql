@@ -95,7 +95,7 @@ CREATE TABLE coaches (
 CREATE TABLE attendance (
     id BIGSERIAL PRIMARY KEY,
     player_id BIGINT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
-    match_id BIGINT NOT NULL REFERENCES matches(id),
+    match_id BIGINT REFERENCES matches(id),
     attended BOOL DEFAULT false NOT NULL,
     timestamp TIMESTAMP DEFAULT now() NOT NULL,
     date DATE,

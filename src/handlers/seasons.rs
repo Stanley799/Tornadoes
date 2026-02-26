@@ -256,25 +256,40 @@ pub async fn list_tournaments(
 /// GET /api/users — Admin: list all users
 pub async fn list_users(
     State(pool): State<PgPool>,
-    Extension(_claims): Extension<Claims>,
+    Extension(claims): Extension<Claims>,
 ) -> Result<impl IntoResponse, AppError> {
+    // Debug: print claims and role
+    tracing::info!("/api/users claims: {:?}, role: {}", claims, claims.role);
     // Allow all logged-in users to fetch the user list
 
-    let rows = sqlx::query_as::<_, (i64, String, String, String)>(
-        "SELECT u.id, u.name, u.email, r.name FROM users u JOIN roles r ON u.role_id = r.id ORDER BY u.name"
+    let rows = sqlx::query_as::<_, (i64, String, String, String, Option<String>, Option<String>)>(
+        r#"
+        SELECT u.id, u.name, u.email, r.name,
+               COALESCE(p.first_name, c.first_name) AS first_name,
+               COALESCE(p.last_name, c.last_name) AS last_name
+        FROM users u
+        JOIN roles r ON u.role_id = r.id
+        LEFT JOIN players p ON p.user_id = u.id
+        LEFT JOIN coaches c ON c.user_id = u.id
+        ORDER BY u.name
+        "#
     )
     .fetch_all(&pool)
     .await?;
 
     let users: Vec<UserResponse> = rows
         .into_iter()
-        .map(|(id, name, email, role)| UserResponse {
+        .map(|(id, name, email, role, first_name, last_name)| UserResponse {
             id,
             name,
             email,
             role,
+            first_name,
+            last_name,
         })
         .collect();
+    
+        tracing::info!("/api/users returned users: {:?}", users);
 
     Ok(Json(users))
 }

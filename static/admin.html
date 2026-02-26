@@ -96,6 +96,8 @@
             min-width: 320px;
             max-width: 95vw;
             color: var(--text-primary);
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .form-label {
             font-family: var(--font);
@@ -148,7 +150,7 @@
     <div class="page-wrapper">
         <nav class="navbar">
             <div class="container">
-                <a href="/" class="navbar-brand"><span class="icon">🏐</span> Tornadoes</a>
+                <a href="/" class="navbar-brand"><img src="FirstTeamLogo.svg" alt="Tornadoes Logo" class="navbar-logo" style="height: 40px; vertical-align: middle;" /> Tornadoes</a>
                 <ul class="navbar-links">
                     <li><a href="/dashboard.html">Dashboard</a></li>
                     <li><a href="/matches.html">Matches</a></li>
@@ -207,17 +209,17 @@
                     <form id="seasonForm" class="hidden" onsubmit="createSeason(event)" style="margin-bottom:1rem;">
                         <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:flex-end;">
                             <div class="form-group" style="margin-bottom:0; flex:1; min-width:150px;">
-                                <label class="form-label">Name</label>
+                                <label class="form-label" for="sName">Name</label>
                                 <input class="form-input" id="sName" required placeholder="e.g. 2026 Season">
                                 <div class="invalid-feedback" id="sNameError"></div>
                             </div>
                             <div class="form-group" style="margin-bottom:0;">
-                                <label class="form-label">Start</label>
+                                <label class="form-label" for="sStart">Start</label>
                                 <input class="form-input" type="date" id="sStart" required>
                                 <div class="invalid-feedback" id="sStartError"></div>
                             </div>
                             <div class="form-group" style="margin-bottom:0;">
-                                <label class="form-label">End</label>
+                                <label class="form-label" for="sEnd">End</label>
                                 <input class="form-input" type="date" id="sEnd" required>
                                 <div class="invalid-feedback" id="sEndError"></div>
                             </div>
@@ -238,17 +240,17 @@
                     <form id="tournamentForm" class="hidden" onsubmit="createTournament(event)" style="margin-bottom:1rem;">
                         <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:flex-end;">
                             <div class="form-group" style="margin-bottom:0; flex:1; min-width:150px;">
-                                <label class="form-label">Name</label>
+                                <label class="form-label" for="tName">Name</label>
                                 <input class="form-input" id="tName" required placeholder="e.g. County League">
                                 <div class="invalid-feedback" id="tNameError"></div>
                             </div>
                             <div class="form-group" style="margin-bottom:0; flex:1; min-width:150px;">
-                                <label class="form-label">Venue</label>
+                                <label class="form-label" for="tVenue">Venue</label>
                                 <input class="form-input" id="tVenue" required placeholder="e.g. City Stadium">
                                 <div class="invalid-feedback" id="tVenueError"></div>
                             </div>
                             <div class="form-group" style="margin-bottom:0;">
-                                <label class="form-label">Date</label>
+                                <label class="form-label" for="tDate">Date</label>
                                 <input class="form-input" type="date" id="tDate" required>
                                 <div class="invalid-feedback" id="tDateError"></div>
                             </div>
@@ -304,7 +306,7 @@
                         <h3>📝 Attendance</h3>
                     </div>
                     <div style="margin-bottom:1rem;">
-                        <label class="form-label">Date</label>
+                        <label class="form-label" for="attendanceDate">Date</label>
                         <input class="form-input" type="date" id="attendanceDate" value="" required>
                     </div>
                     <div class="table-wrapper">
@@ -334,33 +336,33 @@
                                 <input class="form-input" type="date" id="adminMDate" required>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Opponent</label>
+                                <label class="form-label" for="adminMOpponent">Opponent</label>
                                 <input class="form-input" id="adminMOpponent" required>
                                 <div class="invalid-feedback" id="adminMOpponentError"></div>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Venue</label>
+                                <label class="form-label" for="adminMVenue">Venue</label>
                                 <input class="form-input" id="adminMVenue" required>
                                 <div class="invalid-feedback" id="adminMVenueError"></div>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Season</label>
+                                <label class="form-label" for="adminMSeason">Season</label>
                                 <select class="form-select" id="adminMSeason" required></select>
                                 <div class="invalid-feedback" id="adminMDateError"></div>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Tournament (optional)</label>
+                                <label class="form-label" for="adminMTournament">Tournament (optional)</label>
                                 <select class="form-select" id="adminMTournament">
                                     <option value="">None</option>
                                 </select>
                                 <div class="invalid-feedback" id="adminMSeasonError"></div>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Match Link (optional)</label>
+                                <label class="form-label" for="adminMLink">Match Link (optional)</label>
                                 <input class="form-input" id="adminMLink" placeholder="https://...">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Result (optional)</label>
+                                <label class="form-label" for="adminMResult">Result (optional)</label>
                                 <select class="form-select" id="adminMResult">
                                     <option value="">—</option>
                                     <option value="win">Win</option>
@@ -369,7 +371,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Score (optional)</label>
+                                <label class="form-label" for="adminMScore">Score (optional)</label>
                                 <input class="form-input" id="adminMScore" placeholder="e.g. 28-24">
                             </div>
                             <div class="flex gap-1">
@@ -387,17 +389,17 @@
                         <form onsubmit="submitEditUser(event)">
                             <input type="hidden" id="editUserId">
                             <div class="form-group">
-                                <label class="form-label">Name</label>
+                                <label class="form-label" for="editUName">Name</label>
                                 <input class="form-input" id="editUName" required>
                                 <div class="invalid-feedback" id="editUNameError"></div>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Email</label>
+                                <label class="form-label" for="editUEmail">Email</label>
                                 <input class="form-input" id="editUEmail" required type="email">
                                 <div class="invalid-feedback" id="editUEmailError"></div>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Role</label>
+                                <label class="form-label" for="editURole">Role</label>
                                 <select class="form-select" id="editURole" required>
                                     <option value="player">Player</option>
                                     <option value="coach">Coach</option>
@@ -420,15 +422,15 @@
                         <form onsubmit="submitEditSeason(event)">
                             <input type="hidden" id="editSeasonId">
                             <div class="form-group">
-                                <label class="form-label">Name</label>
+                                <label class="form-label" for="editSName">Name</label>
                                 <input class="form-input" id="editSName" required>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Start</label>
+                                <label class="form-label" for="editSStart">Start</label>
                                 <input class="form-input" type="date" id="editSStart" required>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">End</label>
+                                <label class="form-label" for="editSEnd">End</label>
                                 <input class="form-input" type="date" id="editSEnd" required>
                             </div>
                             <div class="flex gap-1">
@@ -446,11 +448,11 @@
                         <form onsubmit="submitEditTournament(event)">
                             <input type="hidden" id="editTournamentId">
                             <div class="form-group">
-                                <label class="form-label">Name</label>
+                                <label class="form-label" for="editTName">Name</label>
                                 <input class="form-input" id="editTName" required>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Season</label>
+                                <label class="form-label" for="editTSeason">Season</label>
                                 <select class="form-select" id="editTSeason" required></select>
                             </div>
                             <div class="flex gap-1">
@@ -470,8 +472,71 @@
     <div class="toast-container" id="toasts"></div>
 
     <script>
+
+        // Utility to close modals by id
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) modal.classList.remove('active');
+        }
+
+                // Stub for missing showEditSeason to prevent JS error
+                function showEditSeason(id) {
+                    showToast('Edit season functionality not yet implemented.', 'error');
+                }
+
+                // Stub for missing saveAttendance to prevent JS error
+                async function saveAttendance() {
+                    const date = document.getElementById('attendanceDate').value;
+                    if (!date) {
+                        showToast('Please select a date for attendance.', 'error');
+                        return;
+                    }
+                    // Collect attendance data from checkboxes
+                    const rows = Array.from(document.querySelectorAll('#attendanceBody tr'));
+                    const records = rows.map(row => {
+                        const userCell = row.querySelector('td strong');
+                        const userName = userCell ? userCell.textContent : '';
+                        const checkbox = row.querySelector('input[type="checkbox"]');
+                        const idMatch = checkbox ? checkbox.id.match(/attend_(\d+)/) : null;
+                        const user_id = idMatch ? parseInt(idMatch[1], 10) : null;
+                        return user_id ? { user_id, present: checkbox.checked, date } : null;
+                    }).filter(Boolean);
+                    if (!records.length) {
+                        showToast('No attendance records to save.', 'error');
+                        return;
+                    }
+                    try {
+                        const res = await fetch('/api/attendance/bulk', {
+                            method: 'POST',
+                            headers: authHeaders(),
+                            body: JSON.stringify({ records, date, match_id: null })
+                        });
+                        const data = await res.json();
+                        if (res.ok && data.message) {
+                            showToast(data.message, 'success');
+                        } else {
+                            showToast(data.message || 'Failed to save attendance.', 'error');
+                        }
+                    } catch {
+                        showToast('Network error', 'error');
+                    }
+                }
         const token = localStorage.getItem('token');
         if (!token) window.location.href = '/login.html';
+
+        // Parse JWT to extract claims (role, etc.)
+        function parseJwt (token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch { return {}; }
+        }
+        const claims = parseJwt(token);
+        const role = claims.role;
 
         function authHeaders() { return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }; }
         function showToast(m, t = 'success') { const d = document.createElement('div'); d.className = `toast toast-${t}`; d.textContent = m; document.getElementById('toasts').appendChild(d); setTimeout(() => d.remove(), 3500); }
@@ -530,9 +595,12 @@
             try {
                 const res = await fetch('/api/users', { headers: authHeaders() });
                 const users = await res.json();
-                document.getElementById('usersBody').innerHTML = users.map(u => `
+                // Show all users (players, coaches, admins) with their roles
+                document.getElementById('usersBody').innerHTML = users.map(u => {
+                    const displayName = (u.first_name && u.last_name) ? `${esc(u.first_name)} ${esc(u.last_name)}` : esc(u.name);
+                    return `
             <tr>
-                <td><strong>${esc(u.name)}</strong></td>
+                <td><strong>${displayName}</strong></td>
                 <td>${esc(u.email)}</td>
                 <td><span class="badge badge-role">${u.role}</span></td>
                 <td>
@@ -546,6 +614,14 @@
                         <button class="btn btn-danger btn-sm" style="margin-left:0.5rem;" onclick="deleteUser(${u.id})">Delete</button>
                     ` : '—'}
                 </td>
+            </tr>
+        `;
+                }).join('');
+                // Also update attendance table with all users
+                document.getElementById('attendanceBody').innerHTML = users.map(u => `
+            <tr>
+                <td><strong>${esc(u.name)}</strong> <span class="text-muted">(${u.role})</span></td>
+                <td><input type="checkbox" id="attend_${u.id}" /></td>
             </tr>
         `).join('');
             } catch { }
@@ -671,11 +747,13 @@
         // In loadSeasonsForAdminMatch, after fetching:
         // if (!seasons.length) setDropdownEmptyState(document.getElementById('adminMSeason'), 'No seasons available');
         // if (!tournaments.length) setDropdownEmptyState(document.getElementById('adminMTournament'), 'No tournaments available');
-        loadPending();
-        loadUsers();
-        loadSeasons();
-        loadTournaments();
-        loadAdminMatches();
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPending();
+            loadUsers();
+            loadSeasons();
+            loadTournaments();
+            loadAdminMatches();
+        });
 
         // ─── Match Management (Admin) ─────────────────────────────
         let adminMatches = [];
@@ -699,6 +777,8 @@
                 document.getElementById('adminMResult').value = '';
                 document.getElementById('adminMScore').value = '';
             }
+            // Populate seasons and tournaments dropdowns
+            loadSeasonsForAdminMatch();
             document.getElementById('adminMatchModal').classList.add('active');
         }
 

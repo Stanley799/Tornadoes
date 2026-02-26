@@ -14,4 +14,5 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
 volumes:
-postgres_data:
+postgres_data:Uncaught ReferenceError: loadAttendance is not defined
+    at HTMLButtonElement.onclick (admin.html:307:91)

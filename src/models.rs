@@ -135,7 +135,7 @@ pub struct AttendanceMarkRequest {
 
 #[derive(Deserialize)]
 pub struct AttendanceBulkRequest {
-    pub match_id: i64,
+    pub match_id: Option<i64>,
     pub records: Vec<AttendanceRecord>,
     pub date: Option<String>,
 }
@@ -190,11 +190,14 @@ pub struct TournamentResponse {
 // ─── User Management ────────────────────────────────────────────────
 
 #[derive(Serialize)]
+#[derive(Debug)]
 pub struct UserResponse {
     pub id: i64,
     pub email: String,
     pub name: String,
     pub role: String,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
 }
 
 #[derive(Deserialize)]

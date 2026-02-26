@@ -7,6 +7,14 @@
 
 /* ─── CSS Custom Properties ─────────────────────────────────── */
 :root {
+/* Logo styling */
+.navbar-logo {
+  height: 40px;
+  width: auto;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+}
   /* Primary palette — deep navy + fiery orange */
   --bg-primary: #0a0e1a;
   --bg-secondary: #111827;
@@ -603,6 +611,7 @@ tr:hover td {
   display: flex;
 }
 
+
 .modal {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
@@ -611,6 +620,8 @@ tr:hover td {
   max-width: 500px;
   width: 90%;
   animation: fadeInUp 0.3s ease;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal h3 {
