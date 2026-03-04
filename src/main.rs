@@ -61,6 +61,8 @@ async fn main() {
         .route("/api/matches", post(handlers::matches::create_match))
         .route("/api/matches/update", post(handlers::matches::update_match))
         .route("/api/matches/:id", axum::routing::delete(handlers::matches::delete_match))
+        .route("/api/matches/:match_id/events", post(handlers::matches::create_match_event))
+        .route("/api/matches/:id/statistics", get(handlers::matches::get_match_statistics))
         // Attendance
         .route("/api/attendance", post(handlers::attendance::mark_attendance))
         .route("/api/attendance/bulk", post(handlers::attendance::mark_attendance_bulk))

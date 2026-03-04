@@ -1,8 +1,25 @@
+use crate::services::match_statistics;
+
+/// GET /api/matches/{id}/statistics — Returns match and player statistics
+pub async fn get_match_statistics(
+    Path(match_id): Path<i64>,
+    State(pool): State<PgPool>,
+    Extension(claims): Extension<Claims>,
+) -> Result<impl IntoResponse, AppError> {
+    require_coach_or_admin(&claims)?;
+    match match_statistics::compute_match_statistics(&pool, match_id).await {
+        Ok(Some(stats)) => Ok(Json(stats)),
+        Ok(None) => Err(AppError::NotFound("Match not found".into())),
+        Err(e) => Err(AppError::Internal(format!("Database error: {}", e))),
+    }
+}
+
+// Only import once at the top
 use axum::{extract::{Path, State}, response::IntoResponse, Extension, Json};
 use sqlx::PgPool;
 use crate::auth::{require_coach_or_admin, Claims};
 use crate::errors::AppError;
-use crate::models::{MatchEventCreateRequest, MatchEventResponse, validate_event_type, validate_period};
+use crate::models::{ApiResponse, MatchCreateRequest, MatchResponse, MatchUpdateRequest, MatchEventCreateRequest, MatchEventResponse, validate_event_type, validate_period};
 
 /// POST /api/matches/{match_id}/events — Insert match event
 pub async fn create_match_event(
@@ -45,8 +62,7 @@ pub async fn create_match_event(
     }
 
     // Insert event
-    let rec = sqlx::query_as!(
-        MatchEventResponse,
+    let rec = sqlx::query!(
         r#"
         INSERT INTO match_events
             (match_id, player_id, event_type, minute, period, is_fast_break, is_penalty, created_by)
@@ -65,10 +81,20 @@ pub async fn create_match_event(
     .fetch_one(&pool)
     .await?;
 
-    Ok(Json(rec))
+    Ok(Json(MatchEventResponse {
+        id: rec.id,
+        match_id: rec.match_id,
+        player_id: rec.player_id,
+        event_type: rec.event_type,
+        minute: rec.minute.unwrap_or(0),
+        period: rec.period,
+        is_fast_break: rec.is_fast_break,
+        is_penalty: rec.is_penalty,
+        created_by: rec.created_by,
+        created_at: rec.created_at.unwrap_or_default(),
+    }))
 }
 /// DELETE /api/matches/:id — Coach/Admin deletes a match
-use axum::extract::Path;
 pub async fn delete_match(
     State(pool): State<PgPool>,
     Extension(claims): Extension<Claims>,
@@ -87,12 +113,6 @@ pub async fn delete_match(
         message: "Match deleted.".into(),
     }))
 }
-use axum::{extract::State, response::IntoResponse, Extension, Json};
-use sqlx::PgPool;
-
-use crate::auth::{require_coach_or_admin, Claims};
-use crate::errors::AppError;
-use crate::models::{ApiResponse, MatchCreateRequest, MatchResponse, MatchUpdateRequest};
 
 /// POST /api/matches — Coach/Admin creates a new match
 pub async fn create_match(

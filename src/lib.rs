@@ -3,6 +3,7 @@ pub mod db;
 pub mod errors;
 pub mod handlers;
 pub mod models;
+pub mod services;
 
 use axum::{middleware, routing::{get, post}, Router};
 use sqlx::postgres::PgPoolOptions;
