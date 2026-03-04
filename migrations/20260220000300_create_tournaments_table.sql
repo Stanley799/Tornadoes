@@ -1,7 +1,7 @@
 -- 2026-02-20T00:03:00Z
 -- Migration: create_tournaments_table
 
-CREATE TABLE tournaments (
+CREATE TABLE IF NOT EXISTS tournaments (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     start_date DATE NOT NULL,

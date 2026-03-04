@@ -1,7 +1,7 @@
 -- 2026-02-20T00:04:00Z
 -- Migration: create_matches_table
 
-CREATE TABLE matches (
+CREATE TABLE IF NOT EXISTS matches (
     id SERIAL PRIMARY KEY,
     tournament_id INTEGER REFERENCES tournaments(id) ON DELETE SET NULL,
     match_date DATE NOT NULL,

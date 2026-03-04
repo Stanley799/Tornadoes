@@ -1,7 +1,7 @@
 -- 2026-02-20T00:02:00Z
 -- Migration: create_attendance_table
 
-CREATE TABLE attendance (
+CREATE TABLE IF NOT EXISTS attendance (
     id SERIAL PRIMARY KEY,
     player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
     match_id INTEGER NOT NULL,

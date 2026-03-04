@@ -1,4 +1,37 @@
 #[derive(Deserialize)]
+pub struct MatchEventCreateRequest {
+    pub player_id: i64,
+    pub event_type: String,
+    pub minute: i32,
+    pub period: String,
+    pub is_fast_break: bool,
+    pub is_penalty: bool,
+}
+
+#[derive(Serialize)]
+pub struct MatchEventResponse {
+    pub id: i64,
+    pub match_id: i64,
+    pub player_id: i64,
+    pub event_type: String,
+    pub minute: i32,
+    pub period: String,
+    pub is_fast_break: bool,
+    pub is_penalty: bool,
+    pub created_by: i64,
+    pub created_at: String,
+}
+
+pub fn validate_event_type(event_type: &str) -> bool {
+    matches!(event_type,
+        "goal" | "shot_missed" | "save" | "block" | "steal" | "foul" | "suspension" | "turnover"
+    )
+}
+
+pub fn validate_period(period: &str) -> bool {
+    matches!(period, "first_half" | "second_half" | "extra_time")
+}
+#[derive(Deserialize)]
 pub struct UserUpdateRequest {
     pub name: String,
     pub email: String,
@@ -92,35 +125,32 @@ pub struct AnnouncementResponse {
 
 #[derive(Deserialize)]
 pub struct MatchCreateRequest {
-    pub date: String,
-    pub opponent: String,
-    pub venue: String,
-    pub result: Option<String>,
-    pub score: Option<String>,
-    pub match_link: Option<String>,
-    pub season_id: i64,
+    pub match_date: String,
+    pub home_team: String,
+    pub away_team: String,
+    pub location: Option<String>,
     pub tournament_id: Option<i64>,
+    pub home_score: Option<i32>,
+    pub away_score: Option<i32>,
 }
 
 #[derive(Deserialize)]
 pub struct MatchUpdateRequest {
     pub id: i64,
-    pub result: Option<String>,
-    pub score: Option<String>,
-    pub match_link: Option<String>,
+    pub home_score: Option<i32>,
+    pub away_score: Option<i32>,
 }
 
 #[derive(Serialize)]
 pub struct MatchResponse {
     pub id: i64,
-    pub date: String,
-    pub opponent: String,
-    pub venue: String,
-    pub result: Option<String>,
-    pub score: Option<String>,
-    pub match_link: Option<String>,
-    pub season_id: i64,
+    pub match_date: String,
+    pub home_team: String,
+    pub away_team: String,
+    pub location: Option<String>,
     pub tournament_id: Option<i64>,
+    pub home_score: Option<i32>,
+    pub away_score: Option<i32>,
 }
 
 // ─── Attendance ─────────────────────────────────────────────────────

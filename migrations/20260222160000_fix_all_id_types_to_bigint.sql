@@ -3,11 +3,11 @@
 -- It also drops and recreates all affected foreign key constraints.
 
 -- 1. Drop foreign key constraints
-ALTER TABLE IF EXISTS announcements DROP CONSTRAINT IF EXISTS announcements_author_id_fkey;
-ALTER TABLE IF EXISTS attendance DROP CONSTRAINT IF EXISTS attendance_player_id_fkey;
-ALTER TABLE IF EXISTS players DROP CONSTRAINT IF EXISTS players_user_id_fkey;
-ALTER TABLE IF EXISTS matches DROP CONSTRAINT IF EXISTS matches_tournament_id_fkey;
-ALTER TABLE IF EXISTS tournaments DROP CONSTRAINT IF EXISTS tournaments_season_id_fkey;
+ALTER TABLE announcements DROP CONSTRAINT IF EXISTS announcements_author_id_fkey;
+ALTER TABLE attendance DROP CONSTRAINT IF EXISTS attendance_player_id_fkey;
+ALTER TABLE players DROP CONSTRAINT IF EXISTS players_user_id_fkey;
+ALTER TABLE matches DROP CONSTRAINT IF EXISTS matches_tournament_id_fkey;
+ALTER TABLE tournaments DROP CONSTRAINT IF EXISTS tournaments_season_id_fkey;
 
 -- 2. Change column types to bigint
 ALTER TABLE announcements ALTER COLUMN id TYPE bigint;

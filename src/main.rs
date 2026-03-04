@@ -83,11 +83,35 @@ async fn main() {
         .layer(middleware::from_fn(auth::auth_middleware));
 
     // ── Combine all routes ──────────────────────────────────────────
+    use axum::{response::IntoResponse, http::StatusCode};
+    use tokio::fs;
+    use axum::extract::Path;
+
+    async fn serve_index() -> impl IntoResponse {
+        match fs::read("static/index.html").await {
+            Ok(contents) => ([("content-type", "text/html")], contents).into_response(),
+            Err(_) => (StatusCode::NOT_FOUND, "index.html not found").into_response(),
+        }
+    }
+
+    async fn serve_html(Path(filename): Path<String>) -> impl IntoResponse {
+        let path = format!("static/{}", filename);
+        if !filename.ends_with(".html") {
+            return (StatusCode::NOT_FOUND, "Not found").into_response();
+        }
+        match fs::read(&path).await {
+            Ok(contents) => ([("content-type", "text/html")], contents).into_response(),
+            Err(_) => (StatusCode::NOT_FOUND, "HTML file not found").into_response(),
+        }
+    }
+
     let app = Router::new()
+        .route("/", get(serve_index))
+        .route("/:filename", get(serve_html))
         .merge(public_api)
         .merge(auth_routes)
         .merge(protected_api)
-        .fallback_service(ServeDir::new("static"))
+        .nest_service("/static", ServeDir::new("static"))
         .with_state(pool);
 
     let port: u16 = std::env::var("PORT")

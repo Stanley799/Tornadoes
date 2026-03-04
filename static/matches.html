@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matches — Tornadoes Handball</title>
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
@@ -203,13 +203,13 @@
                 const res = await fetch('/api/matches', {
                     method: 'POST', headers: authHeaders(),
                     body: JSON.stringify({
-                        date: document.getElementById('mDate').value,
-                        opponent: document.getElementById('mOpponent').value,
-                        venue: document.getElementById('mVenue').value,
-                        season_id: parseInt(document.getElementById('mSeason').value),
+                        match_date: document.getElementById('mDate').value,
+                        home_team: 'Tornadoes',
+                        away_team: document.getElementById('mOpponent').value,
+                        location: document.getElementById('mVenue').value,
                         tournament_id: document.getElementById('mTournament').value ? parseInt(document.getElementById('mTournament').value) : null,
-                        match_link: document.getElementById('mLink').value || null,
-                        result: null, score: null
+                        home_score: null,
+                        away_score: null
                     })
                 });
                 const data = await res.json();
