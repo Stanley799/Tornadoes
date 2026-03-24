@@ -4,6 +4,7 @@ use axum::http::{Request, StatusCode};
 use axum::body::Body;
 use handball_team_app::auth::create_token;
 use handball_team_app::build_app_for_test;
+use tower::util::ServiceExt;
 
 #[tokio::test]
 async fn test_statistics_admin_access() {

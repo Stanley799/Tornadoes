@@ -9,6 +9,8 @@ use axum::{middleware, routing::{get, post}, Router};
 use sqlx::postgres::PgPoolOptions;
 use tower_http::services::ServeDir;
 
+pub use crate::services::match_statistics;
+
 pub async fn build_app_for_test() -> Router {
     use std::env;
     let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://Tornadoes:Seblent2568.@localhost:5432/handball_db".to_string());

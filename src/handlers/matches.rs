@@ -1,4 +1,4 @@
-use crate::services::match_statistics;
+use handball_team_app::match_statistics;
 
 /// GET /api/matches/{id}/statistics — Returns match and player statistics
 pub async fn get_match_statistics(

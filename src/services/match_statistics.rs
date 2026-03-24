@@ -2,7 +2,6 @@
 //! Uses SQLx for database queries and aggregates stats efficiently.
 
 use sqlx::PgPool;
-use crate::models::{MatchEventResponse};
 use serde::Serialize;
 
 /// Team-level statistics for a match.
@@ -99,15 +98,18 @@ pub async fn compute_match_statistics(pool: &PgPool, match_id: i64) -> Result<Op
     let mut player_stats = std::collections::HashMap::new();
 
     for e in &events {
-        let team = if e.team == "home" { "home" } else { "away" };
+        let team = match &e.team {
+            Some(t) if t == "home" => "home",
+            _ => "away",
+        };
         // Team-level stats
         match e.event_type.as_str() {
             "goal" => {
                 if team == "home" { home_team_goals += 1; } else { away_team_goals += 1; }
-                if e.is_fast_break.unwrap_or(false) {
+                if e.is_fast_break {
                     if team == "home" { home_team_fast_break_goals += 1; } else { away_team_fast_break_goals += 1; }
                 }
-                if e.is_penalty.unwrap_or(false) {
+                if e.is_penalty {
                     if team == "home" { home_team_penalty_goals += 1; } else { away_team_penalty_goals += 1; }
                 }
             },
@@ -121,7 +123,11 @@ pub async fn compute_match_statistics(pool: &PgPool, match_id: i64) -> Result<Op
         }
         // Player-level stats
         if e.event_type == "goal" {
-            let entry = player_stats.entry(e.player_id).or_insert((format!("{} {}", e.first_name.as_deref().unwrap_or("").to_string(), e.last_name.as_deref().unwrap_or("").to_string()), team, 0));
+            let entry = player_stats.entry(e.player_id).or_insert((format!("{} {}",
+                e.first_name.as_str(),
+                e.last_name.as_str()),
+                team,
+                0));
             entry.2 += 1;
         }
     }
